@@ -1,2 +1,2 @@
 # MEEN357_DesignProject
-Design project form MEEN357
+Design project for MEEN357
