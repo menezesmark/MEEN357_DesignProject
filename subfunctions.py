@@ -77,7 +77,7 @@ def F_gravity(terrain_angle, rover, planet): #still having some errors w/ valida
     if not (np.isscalar(terrain_angle) or (isinstance(terrain_angle, np.ndarray) and terrain_angle.ndim == 1)):
         raise Exception('terrain_angle must be scalar or vector')
     
-    if (terrain_angle >  75) or (terrain_angle < -75):
+    if np.any(terrain_angle >  75) or np.any(terrain_angle < -75):
         raise Exception('angle is to large, must be between -75,75')
     
     if type(rover) is not dict:
@@ -97,7 +97,7 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
     if not (np.isscalar(terrain_angle) or (isinstance(terrain_angle, np.ndarray) and terrain_angle.ndim == 1)):
         raise Exception('terrain_angle must be scalar or vector')
     
-    if (terrain_angle >  75) or (terrain_angle < -75):
+    if np.any(terrain_angle >  75) or np.any(terrain_angle < -75):
         raise Exception('angle is to large, must be between -75,75')
     
     if type(rover) is not dict:
@@ -111,8 +111,8 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
     
     Frr_simple = Crr * get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
     wheel = rover['wheel_assembly']['wheel']
-    Vrover = wheel*['radius'] * omega
-    Frr = mt.erf(40*Vrover)*Frr_simple
+    Vrover = wheel * omega
+    Frr = mt.erf(40*Vrover) * Frr_simple
     return Frr
     
     
