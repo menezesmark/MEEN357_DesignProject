@@ -87,7 +87,7 @@ def F_gravity(terrain_angle, rover, planet): #still having some errors w/ valida
         raise Exception('planet must be a dictionary')
     
     
-    Fgt = get_mass(rover) * planet['g'] * np.sin(np.deg2rad(terrain_angle))
+    Fgt = - get_mass(rover) * planet['g'] * np.sin(np.deg2rad(terrain_angle))
     return Fgt
     
     
