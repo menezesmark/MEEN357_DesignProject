@@ -13,37 +13,105 @@ import matplotlib.pyplot as plt
 
 
 def get_mass(rover):
-   ans = 6(rover['wheel'['mass']] + rover['speed_reducer'['mass']] + rover['motor'['mass']]) + rover['chassis'['mass']] + rover['science_payload'['mass']] + rover['power_subsys'['mass']]
-   return ans
+    if type(rover) is not dict:
+        raise Exception('rover must be a dictionary')
+        
+    wheel_mass = rover['wheel_assembly']['wheel']['mass']
+    speed_reducer_mass = rover['wheel_assembly']['speed_reducer']['mass']
+    motor_mass = rover['wheel_assembly']['motor']['mass']
+    chassis_mass = rover['chassis']['mass']
+    payload_mass = rover['science_payload']['mass']
+    power_mass = rover['power_subsys']['mass']
+
+    total_mass = 6 * (wheel_mass + speed_reducer_mass + motor_mass) + chassis_mass + payload_mass + power_mass
+    return total_mass
+
    
 
 def get_gear_ratio(speed_reducer): #return speed ratio
+    
+    if type(speed_reducer) is not dict:
+        raise Exception('speed_reducer must be a dictionary')
+
+    if not speed_reducer['type'] == 'reverted':
+        raise Exception("some type of error")
+    
     ng = (speed_reducer['diam_gear']/speed_reducer['diam_pinion'])**2
     return ng    
     
     
 def tau_dcmotor(omega, motor): #return motor shaft torque in rad/s
-    tau = motor['torque_noload'] - ((motor['torque_stall'] - motor['torque_noload'])/motor['speed_noload'])*omega
+    if type(motor) is not dict:
+        raise Exception('motor must be a dictionary')
+
+    if not (np.isscalar(omega) or (isinstance(omega, np.ndarray) and omega.ndim == 1)):
+        raise Exception('omega must be scalar or vector')    
+
+    tau = np.maximum(0, motor['torque_stall'] * (1 - omega / motor['speed_noload']))
     return tau
     
     
 
 def F_drive(omega, rover): #return drive force Fd
-    Fd = (tau_dcmotor() * get_gear_ratio())/rover['wheel'['radius']]#idk how to get motor into thes functions
+    
+    if type(rover) is not dict:
+        raise Exception('rover must be a dictionary')
+
+    if not (np.isscalar(omega) or (isinstance(omega, np.ndarray) and omega.ndim == 1)):
+        raise Exception('omega must be scalar or vector')
+
+    motor = rover['wheel_assembly']['motor']
+    speed_reducer = rover['wheel_assembly']['speed_reducer']
+    wheel = rover['wheel_assembly']['wheel']
+
+    tau = tau_dcmotor(omega, motor)
+    ng = get_gear_ratio(speed_reducer)
+
+    Fd = 6 * (tau * ng) / wheel['radius']
     return Fd
+
     
+
+def F_gravity(terrain_angle, rover, planet): #still having some errors w/ validation
     
-def F_gravity(terrain_angle, rover, planet):
+    if not (np.isscalar(terrain_angle) or (isinstance(terrain_angle, np.ndarray) and terrain_angle.ndim == 1)):
+        raise Exception('terrain_angle must be scalar or vector')
+    
     if (terrain_angle >  75) or (terrain_angle < -75):
         raise Exception('angle is to large, must be between -75,75')
+    
+    if type(rover) is not dict:
+        raise Exception('rover must be a dictionary')
+
+    if type(planet) is not dict:
+        raise Exception('planet must be a dictionary')
+    
+    
     Fgt = get_mass(rover) * planet['g'] * np.sin(np.deg2rad(terrain_angle))
     return Fgt
     
     
     
 def F_rolling(omega, terrain_angle, rover, planet, Crr):
+
+    if not (np.isscalar(terrain_angle) or (isinstance(terrain_angle, np.ndarray) and terrain_angle.ndim == 1)):
+        raise Exception('terrain_angle must be scalar or vector')
+    
+    if (terrain_angle >  75) or (terrain_angle < -75):
+        raise Exception('angle is to large, must be between -75,75')
+    
+    if type(rover) is not dict:
+        raise Exception('rover must be a dictionary')
+
+    if type(planet) is not dict:
+        raise Exception('planet must be a dictionary')
+    
+    if not np.isscalar(Crr) and Crr > 0:
+        raise Exception('Crr must be a positive scalar')
+    
     Frr_simple = Crr * get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
-    Vrover = rover['wheel'['radius']] * omega
+    wheel = rover['wheel_assembly']['wheel']
+    Vrover = wheel*['radius'] * omega
     Frr = mt.erf(40*Vrover)*Frr_simple
     return Frr
     
@@ -51,8 +119,4 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
 def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
     Fslope = F_drive(omega, rover) - F_rolling(omega, terrain_angle, rover, planet, Crr) - F_gravity(terrain_angle, rover, planet)
     return Fslope
-    
-    
-    
-    
-    
+
