@@ -6,6 +6,7 @@ Created on Thu Jan 29 09:31:10 2026
 """
 
 import numpy as np
+from scipy import special
 import matplotlib.pyplot as plt
 
 
@@ -115,7 +116,7 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
     Frr_simple = Crr * Fn
     Vrover = rover['wheel_assembly']['wheel']['radius'] * omega
     
-    Frr = np.erf(40*Vrover) * Frr_simple
+    Frr = special.erf(40*Vrover) * Frr_simple
     return Frr
 
 
