@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 
 
 
-
 def get_mass(rover):
     if type(rover) is not dict:
         raise Exception('rover must be a dictionary')
@@ -26,7 +25,6 @@ def get_mass(rover):
     total_mass = 6 * (wheel_mass + speed_reducer_mass + motor_mass) + chassis_mass + payload_mass + power_mass
     return total_mass
 
-   
 
 def get_gear_ratio(speed_reducer): #return speed ratio
     
@@ -38,8 +36,8 @@ def get_gear_ratio(speed_reducer): #return speed ratio
     
     ng = (speed_reducer['diam_gear']/speed_reducer['diam_pinion'])**2
     return ng    
-    
-    
+
+
 def tau_dcmotor(omega, motor): #return motor shaft torque in rad/s
     if type(motor) is not dict:
         raise Exception('motor must be a dictionary')
@@ -49,8 +47,7 @@ def tau_dcmotor(omega, motor): #return motor shaft torque in rad/s
 
     tau = np.maximum(0, motor['torque_stall'] * (1 - omega / motor['speed_noload']))
     return tau
-    
-    
+
 
 def F_drive(omega, rover): #return drive force Fd
     
@@ -70,7 +67,6 @@ def F_drive(omega, rover): #return drive force Fd
     Fd = 6 * (tau * ng) / wheel['radius']
     return Fd
 
-    
 
 def F_gravity(terrain_angle, rover, planet): #still having some errors w/ validation
     
@@ -89,10 +85,9 @@ def F_gravity(terrain_angle, rover, planet): #still having some errors w/ valida
     
     Fgt = - get_mass(rover) * planet['g'] * np.sin(np.deg2rad(terrain_angle))
     return Fgt
-    
-    
-    
-def F_rolling(omega, terrain_angle, rover, planet, Crr):
+
+
+def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
 
     # if not (np.isscalar(omega) or (isinstance(omega, np.ndarray) and omega.ndim == 1 and omega.ndim == terrain_angle.ndim)):
     #     raise Exception('omega must be a scalar or vector')
@@ -114,9 +109,9 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
     
     Fn = get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
     Frr_simple = Crr * Fn
-    Vrover = -rover['wheel_assembly']['wheel']['radius'] * omega
+    Vrover = rover['wheel_assembly']['wheel']['radius'] * omega
     
-    Frr = special.erf(40*Vrover) * Frr_simple
+    Frr = - special.erf(40*Vrover) * Frr_simple
     return Frr
 
 
