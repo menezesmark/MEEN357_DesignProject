@@ -6,7 +6,6 @@ Created on Thu Jan 29 09:31:10 2026
 """
 
 import numpy as np
-import math as mt
 import matplotlib.pyplot as plt
 
 
@@ -116,10 +115,10 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
     Frr_simple = Crr * Fn
     Vrover = rover['wheel_assembly']['wheel']['radius'] * omega
     
-    Frr = mt.erf(40*Vrover) * Frr_simple
+    Frr = np.erf(40*Vrover) * Frr_simple
     return Frr
-    
-    
+
+
 def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
     Fslope = F_drive(omega, rover) - F_rolling(omega, terrain_angle, rover, planet, Crr) - F_gravity(terrain_angle, rover, planet)
     return Fslope
