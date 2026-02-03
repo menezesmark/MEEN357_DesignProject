@@ -112,9 +112,10 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
     if not np.isscalar(Crr) and Crr > 0:
         raise Exception('Crr must be a positive scalar')
     
-    Frr_simple = Crr * get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
-    wheel = rover['wheel_assembly']['wheel']
-    Vrover = wheel * omega
+    Fn = get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
+    Frr_simple = Crr * Fn
+    Vrover = rover['wheel_assembly']['wheel']['radius'] * omega
+    
     Frr = mt.erf(40*Vrover) * Frr_simple
     return Frr
     
