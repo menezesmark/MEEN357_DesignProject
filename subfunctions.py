@@ -111,7 +111,7 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
     Frr_simple = Crr * Fn
     Vrover = rover['wheel_assembly']['wheel']['radius'] * omega
     
-    Frr =  special.erf(40 * Vrover) * Frr_simple
+    Frr =  - special.erf(40 * Vrover) * Frr_simple
     return Frr
 
 
