@@ -87,11 +87,8 @@ def F_gravity(terrain_angle, rover, planet): #still having some errors w/ valida
     return Fgt
 
 
-# def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
+def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
 
-def F_rolling(omega, terrain_angle, rover, planet, Crr):
-
-    # --- Validation ---
     if not (np.isscalar(omega) or (isinstance(omega, np.ndarray) and omega.ndim == 1)):
         raise Exception("omega must be a scalar or 1D numpy array")
 
@@ -110,45 +107,13 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
     if not (np.isscalar(Crr) and Crr > 0):
         raise Exception("Crr must be a positive scalar")
 
-    # --- Required call (even though not used) ---
-    _ = get_gear_ratio(rover['wheel_assembly']['speed_reducer'])
-
-    # --- Physics ---
+    
     Fn = get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
     Frr_simple = Crr * Fn
-
-    Vrover = rover['wheel_assembly']['wheel']['radius'] * get_gear_ratio(rover['wheel_assembly']['speed_reducer']) * omega
-
-    # Rolling resistance opposes motion
-    Frr = - special.erf(40 * Vrover) * Frr_simple
-
+    Vrover = rover['wheel_assembly']['wheel']['radius'] * omega * get_gear_ratio(rover)
+    
+    Frr =  - special.erf(40 * Vrover) * Frr_simple
     return Frr
-
-
-    # if not (np.isscalar(omega) or (isinstance(omega, np.ndarray) and omega.ndim == 1 and omega.ndim == terrain_angle.ndim)):
-    #     raise Exception('omega must be a scalar or vector')
-
-    # if not (np.isscalar(terrain_angle) or (isinstance(terrain_angle, np.ndarray) and terrain_angle.ndim == 1)):
-    #     raise Exception('terrain_angle must be a scalar or vector')
-    
-    # if np.any(terrain_angle >  75) or np.any(terrain_angle < -75):
-    #     raise Exception('angle is out of range, must be between -75,75')
-    
-    # if type(rover) is not dict:
-    #     raise Exception('rover must be a dictionary')
-
-    # if type(planet) is not dict:
-    #     raise Exception('planet must be a dictionary')
-    
-    # if not np.isscalar(Crr) and Crr > 0:
-    #     raise Exception('Crr must be a positive scalar')
-    
-    # Fn = get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
-    # Frr_simple = Crr * Fn
-    # Vrover = rover['wheel_assembly']['wheel']['radius'] * omega
-    
-    # Frr =  - special.erf(40 * Vrover) * Frr_simple
-    # return Frr
 
 
 def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
