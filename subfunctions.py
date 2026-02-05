@@ -122,6 +122,6 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
 
 
 def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
-    Fslope = F_drive(omega, rover) - F_rolling(omega, terrain_angle, rover, planet, Crr) - F_gravity(terrain_angle, rover, planet)
+    Fslope = F_drive(omega, rover) + F_rolling(omega, terrain_angle, rover, planet, Crr) + F_gravity(terrain_angle, rover, planet)
     return Fslope
 
