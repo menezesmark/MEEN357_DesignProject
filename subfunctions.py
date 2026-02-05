@@ -95,6 +95,10 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
     if not (np.isscalar(terrain_angle) or (isinstance(terrain_angle, np.ndarray) and terrain_angle.ndim == 1)):
         raise Exception("terrain_angle must be a scalar or 1D numpy array")
 
+    if isinstance(omega, np.ndarray) and isinstance(terrain_angle, np.ndarray):
+        if omega.size != terrain_angle.size:
+            raise Exception("omega and terrain_angle must be the same size")
+
     if np.any(terrain_angle > 75) or np.any(terrain_angle < -75):
         raise Exception("terrain_angle must be between -75 and 75 degrees")
 
