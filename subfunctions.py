@@ -87,10 +87,7 @@ def F_gravity(terrain_angle, rover, planet): #still having some errors w/ valida
     return Fgt
 
 
-def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
-
-from scipy import special
-import numpy as np
+# def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
 
 def F_rolling(omega, terrain_angle, rover, planet, Crr):
 
