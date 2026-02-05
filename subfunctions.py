@@ -10,6 +10,16 @@ from scipy import special
 import matplotlib.pyplot as plt
 
 
+# planet = {["g"] : 3.18}
+# power_subsys = {["mass"] : 90}
+# science_payload = {["mass"] : 75}
+# chassis = {["mass"] : 659}
+# motor = {["torque_stall"] : 170, ["torque_noload"] : 0, ["speed_noload"] : 3.8, ["mass"] : 5}
+# speed_reducer = {['type'] : "reverted", ['diam_pinion'] : 0.04, ['diam_gear'] : 0.07, ['mass'] : 1.5}
+# wheel = {['radius'] :0.3 ['mass'] :1}
+# wheel_assembly = {['wheel'] : wheel, ['speed_reduce'] : speed_reducer, ['motor'] : motor}
+# rover = {['wheel_assembly'] : wheel_assembly, ['chassis'] : chassis, ['science_payload'] : science_payload, ['power_subsys'] : power_subsys}
+
 
 def get_mass(rover):
     if type(rover) is not dict:
