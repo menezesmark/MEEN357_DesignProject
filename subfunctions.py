@@ -117,7 +117,7 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr):
     Fn = get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
     Frr_simple = Crr * Fn
 
-    Vrover = rover['wheel_assembly']['wheel']['radius'] * omega
+    Vrover = rover['wheel_assembly']['wheel']['radius'] * get_gear_ratio(rover['wheel_assembly']['speed_reducer']) * omega
 
     # Rolling resistance opposes motion
     Frr = - special.erf(40 * Vrover) * Frr_simple
