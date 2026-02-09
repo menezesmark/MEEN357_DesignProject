@@ -40,7 +40,7 @@ for i in range(rows):
             tol = 1e-5
             root_omega = 0.0
             
-            for _ in range(100): # Max 100 iterations
+            for q in range(1000):
                 c = (a + b) / 2
                 fc = F_net(c, slope_current, rover, planet, c_current)
                 
