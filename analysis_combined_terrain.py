@@ -27,7 +27,7 @@ for i in range(rows):
         fa = F_net(a, slope_current, rover, planet, c_current)
         fb = F_net(b, slope_current, rover, planet, c_current)
         
-        # Check signs to determine if a root exists in the valid range
+        # check case
         if np.sign(fa) == np.sign(fb):
             if fa > 0:
                 # runaway case so nan
