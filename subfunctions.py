@@ -178,20 +178,23 @@ def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
     Fslope = F_drive(omega, rover) + F_rolling(omega, terrain_angle, rover, planet, Crr) + F_gravity(terrain_angle, rover, planet)
     return Fslope
 
-def motorW(v, rover):
+def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = motorW
 
 
 
-def rover_dynamics(t, v, rover, planet, experiment):
+def rover_dynamics(t, v, rover, planet, experiment): #deriv of [velo, pos] -> state vector. = dydt
 
 
-def mechpower(v, rover):
+
+def mechpower(v, rover): # calc instant mech pwr from single motor at given velo profile. = P
 
 
-def battenergy(t, v, rover):
+
+def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
 
 
-def simulate_rover(rover, planet, experiment, end_event):
+
+def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
 
 
 
