@@ -8,45 +8,60 @@ Created on Thu Jan 29 09:31:10 2026
 import numpy as np
 from scipy import special
 
-# planet = {'g': 3.72}
+planet = {'g': 3.72}
 
-# power_subsys = {'mass': 90}
+power_subsys = {'mass': 90}
 
-# science_payload = {'mass': 75}
+science_payload = {'mass': 75}
 
-# chassis = {'mass': 659}
+chassis = {'mass': 659}
 
-# motor = {
-#     'torque_stall': 170, 
-#     'torque_noload': 0, 
-#     'speed_noload': 3.80, 
-#     'mass': 5.0
-# }
+motor = {
+    'torque_stall': 170, 
+    'torque_noload': 0, 
+    'speed_noload': 3.80, 
+    'mass': 5.0
+    'effcy_tau': [0, 10, 20, 40, 70, 165]
+    'effcy': [0, 0.60, 0,78, 0.52, 0.04]
+}
 
-# speed_reducer = {
-#     'type': "reverted", 
-#     'diam_pinion': 0.04, 
-#     'diam_gear': 0.07, 
-#     'mass': 1.5
-# }
+speed_reducer = {
+    'type': "reverted", 
+    'diam_pinion': 0.04, 
+    'diam_gear': 0.07, 
+    'mass': 1.5
+}
 
-# wheel = {
-#     'radius': 0.30, 
-#     'mass': 1.0
-# }
+wheel = {
+    'radius': 0.30, 
+    'mass': 1.0
+}
 
-# wheel_assembly = {
-#     'wheel': wheel, 
-#     'speed_reducer': speed_reducer, 
-#     'motor': motor
-# }
+wheel_assembly = {
+    'wheel': wheel, 
+    'speed_reducer': speed_reducer, 
+    'motor': motor
+}
 
-# rover = {
-#     'wheel_assembly': wheel_assembly, 
-#     'chassis': chassis, 
-#     'science_payload': science_payload, 
-#     'power_subsys': power_subsys
-# }
+rover = {
+    'wheel_assembly': wheel_assembly, 
+    'chassis': chassis, 
+    'science_payload': science_payload, 
+    'power_subsys': power_subsys
+}
+
+experiment = {'time_range' : np.array([0,20000]),
+                  'initial_conditions' : np.array([0.325,0]),
+                  'alpha_dist' : np.array([0, 100, 200, 300, 400, 500, 600, \
+                                           700, 800, 900, 1000]),
+                  'alpha_deg' : np.array([2.032, 11.509, 2.478, 7.182, \
+                                        5.511, 10.981, 5.601, -0.184, \
+                                        0.714, 4.151, 4.042]),
+                  'Crr' : 0.1}
+
+end_event = {'max_distance' : 50,
+                 'max_time' : 5000,
+                 'min_velocity' : 0.01}
 
 
 def get_mass(rover):
@@ -162,3 +177,21 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
 def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
     Fslope = F_drive(omega, rover) + F_rolling(omega, terrain_angle, rover, planet, Crr) + F_gravity(terrain_angle, rover, planet)
     return Fslope
+
+def motorW(v, rover):
+
+
+
+def rover_dynamics(t, v, rover, planet, experiment):
+
+
+def mechpower(v, rover):
+
+
+def battenergy(t, v, rover):
+
+
+def simulate_rover(rover, planet, experiment, end_event):
+
+
+
