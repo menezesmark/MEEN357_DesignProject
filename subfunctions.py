@@ -8,6 +8,7 @@ Created on Thu Jan 29 09:31:10 2026
 import numpy as np
 from scipy import special
 
+
 planet = {'g': 3.72}
 
 power_subsys = {'mass': 90}
@@ -20,8 +21,8 @@ motor = {
     'torque_stall': 170, 
     'torque_noload': 0, 
     'speed_noload': 3.80, 
-    'mass': 5.0
-    'effcy_tau': [0, 10, 20, 40, 70, 165]
+    'mass': 5.0,
+    'effcy_tau': [0, 10, 20, 40, 70, 165],
     'effcy': [0, 0.60, 0,78, 0.52, 0.04]
 }
 
@@ -179,22 +180,65 @@ def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
     return Fslope
 
 def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = motorW
+    '''doc_string output for help()'''
+    if not (np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 1)):
+        raise Exception("v must be a scalar or 1D numpy array")
+        
+    if not isinstance(rover, dict):
+        raise Exception("rover must be a dictionary")
+    
+    # total rotation ratio from ground speed in x,y,(z?)
+    # to tangential velocity into wheel speed
+    # into the gearbox, all the way to the motor
+    
+    r_wheel = rover['wheel_assembly']['wheel']['radius']
+    Ng = get_gear_ratio(rover['wheel_assembly']['speed_reducer'])
+    
+    # assuming the wheels are rolling w/o slipping
+    W_motor = (v * Ng)/r_wheel
+    
+    return W_motor
 
 
-
-def rover_dynamics(t, v, rover, planet, experiment): #deriv of [velo, pos] -> state vector. = dydt
-
+def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> state vector. = dydt
+    # a
+    
+    if not (np.isscalar(t)):
+        raise Exception("t must be a scalar")
+    
+    if not (isinstance(y, np.ndarray) and y.ndim == 1 and (np.size(y) == 2)):
+        raise Exception("y must be numpy array of two elements, velocity (m/s) and position (m)")
+    
+    
+    
+    
+    W = motorW()
+    Fnet = F_net()
+    m = get_mass()
+    
+    
+    dydt = 0
+    
+    return dydt
 
 
 def mechpower(v, rover): # calc instant mech pwr from single motor at given velo profile. = P
-
+    # a
+    return
 
 
 def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
-
+    # a
+    return
 
 
 def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
+    # a
+    return
+
+
+
+
 
 
 
