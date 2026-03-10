@@ -201,7 +201,8 @@ def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = 
 
 
 def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> state vector. = dydt
-    # a
+    # INCOMPLETE, NEEDS WORK
+    '''doc_string of rover_dynamics'''
     
     if not (np.isscalar(t)):
         raise Exception("t must be a scalar")
@@ -209,12 +210,19 @@ def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> st
     if not (isinstance(y, np.ndarray) and y.ndim == 1 and (np.size(y) == 2)):
         raise Exception("y must be numpy array of two elements, velocity (m/s) and position (m)")
     
+    if not isinstance(rover, dict):
+        raise Exception("rover must be a dictionary")
+
+    if not isinstance(planet, dict):
+        raise Exception("planet must be a dictionary")
+    
+    if not isinstance(experiment, dict):
+        raise Exception("experiment must be a dictionary")
     
     
-    
-    W = motorW()
-    Fnet = F_net()
-    m = get_mass()
+    W = motorW(v, rover)
+    Fnet = F_net(omega, terrain_angle, rover, planet, Crr)
+    m = get_mass(rover)
     
     
     dydt = 0
@@ -235,6 +243,7 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
 def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
     # a
     return
+
 
 
 
