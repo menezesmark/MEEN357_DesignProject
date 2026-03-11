@@ -6,7 +6,7 @@ Created on Thu Jan 29 09:31:10 2026
 """
 
 import numpy as np
-from scipy import special
+import scipy as sci
 
 
 planet = {'g': 3.72}
@@ -171,7 +171,7 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
     Ng = get_gear_ratio(rover['wheel_assembly']['speed_reducer'])
     Vrover = rover['wheel_assembly']['wheel']['radius'] * omega / Ng
 
-    Frr =  - special.erf(40 * Vrover) * Frr_simple
+    Frr =  - sci.special.erf(40 * Vrover) * Frr_simple
     return Frr
 
 
@@ -179,8 +179,10 @@ def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
     Fslope = F_drive(omega, rover) + F_rolling(omega, terrain_angle, rover, planet, Crr) + F_gravity(terrain_angle, rover, planet)
     return Fslope
 
+
 def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = motorW
     '''doc_string output for help()'''
+    
     if not (np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 1)):
         raise Exception("v must be a scalar or 1D numpy array")
         
@@ -232,17 +234,69 @@ def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> st
 
 def mechpower(v, rover): # calc instant mech pwr from single motor at given velo profile. = P
     # a
-    return
+    '''documentation for mechpower'''
+    
+    if not (np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 1)):
+        raise Exception("v must be a scalar or 1D numpy array")
+        
+    if not isinstance(rover, dict):
+        raise Exception("rover must be a dictionary")
+    
+    w = motorW(v, rover)
+    tau = tau_dcmotor(w, motor)
+    
+    P = tau * w
+    
+    return P
 
 
 def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
-    # a
-    return
+    # INCOMPLETE, Where is tau_dcmotor even supposed to be used here?
+    '''documentation for battenergy'''
+    
+    if not (np.isscalar(t) or (isinstance(t, np.ndarray) and t.ndim == 1)):
+        raise Exception("t must be a scalar or 1D numpy array")    
+    
+    if not (np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 1)):
+        raise Exception("v must be a scalar or 1D numpy array")
+        
+    if not isinstance(rover, dict):
+        raise Exception("rover must be a dictionary")
+    
+    if isinstance(t, np.ndarray) and isinstance(v, np.ndarray):
+        if t.size != v.size:
+            raise Exception("t and v must be the same size")
+    
+    tau = tau_dcmotor(omega, motor)
+    P = mechpower(v, rover)
+    
+    E = 6*np.trapz(P, t)
+    
+    return E
 
 
 def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
-    # a
+    # INCOMPLETE
+    if not isinstance(rover, dict):
+        raise Exception("rover must be a dictionary")
+        
+    if not isinstance(planet, dict):
+        raise Exception("planet must be a dictionary")
+    
+    if not isinstance(experiment, dict):
+        raise Exception("experiment must be a dictionary")
+    
+    if not isinstance(end_event, dict):
+        raise Exception("end_event must be a dictionary")
+    
+    
+    
+    
+    
+    
     return
+
+
 
 
 
