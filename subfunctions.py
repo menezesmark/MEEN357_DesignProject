@@ -7,6 +7,7 @@ Created on Thu Jan 29 09:31:10 2026
 
 import numpy as np
 import scipy as sci
+import scipy.interpolate as inp
 
 
 planet = {'g': 3.72}
@@ -225,7 +226,7 @@ def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> st
     x = float(y[1])
     
     m_net = get_mass(rover)
-    alpha_fun = sci.interpld(experiment['alpha_dist'], 
+    alpha_fun = inp.interpld(experiment['alpha_dist'], 
                              experiment['alpha_deg'], 
                              kind='cubic',
                              bounds_error=False,
