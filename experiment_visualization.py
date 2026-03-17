@@ -17,7 +17,7 @@ plt.plot(x_eval, alpha_eval, '-', label='Interpolation')
 
 
 plt.xlabel('Distance [m]')
-plt.ylabel('Angle [degree]')
+plt.ylabel('Angle [deg]')
 plt.title('Terrain Angle vs. Distance')
 plt.legend()
 plt.show()
