@@ -226,7 +226,7 @@ def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> st
     x = float(y[1])
     
     m_net = get_mass(rover)
-    alpha_fun = inp.interpld(experiment['alpha_dist'], 
+    alpha_fun = inp.interp1d(experiment['alpha_dist'], 
                              experiment['alpha_deg'], 
                              kind='cubic',
                              bounds_error=False,
