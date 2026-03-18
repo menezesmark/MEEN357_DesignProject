@@ -78,6 +78,7 @@ def get_mass(rover):
     power_mass = rover['power_subsys']['mass']
 
     total_mass = 6 * (wheel_mass + speed_reducer_mass + motor_mass) + chassis_mass + payload_mass + power_mass
+    
     return total_mass
 
 
@@ -90,6 +91,7 @@ def get_gear_ratio(speed_reducer): #return speed ratio
         raise Exception("some type of error")
     
     ng = (speed_reducer['diam_gear']/speed_reducer['diam_pinion'])**2
+    
     return ng    
 
 
@@ -101,6 +103,7 @@ def tau_dcmotor(omega, motor): #return motor shaft torque in rad/s
         raise Exception('omega must be a scalar or vector')    
 
     tau = np.maximum(0, motor['torque_stall'] * (1 - omega / motor['speed_noload']))
+    
     return tau
 
 
@@ -120,6 +123,7 @@ def F_drive(omega, rover): #return drive force Fd
     ng = get_gear_ratio(speed_reducer)
 
     Fd = 6 * (tau * ng) / wheel['radius']
+    
     return Fd
 
 
@@ -139,6 +143,7 @@ def F_gravity(terrain_angle, rover, planet): #still having some errors w/ valida
     
     
     Fgt = - get_mass(rover) * planet['g'] * np.sin(np.deg2rad(terrain_angle))
+    
     return Fgt
 
 
@@ -173,11 +178,14 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
     Vrover = rover['wheel_assembly']['wheel']['radius'] * omega / Ng
 
     Frr =  - sci.special.erf(40 * Vrover) * Frr_simple
+    
     return Frr
 
 
 def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
+    
     Fslope = F_drive(omega, rover) + F_rolling(omega, terrain_angle, rover, planet, Crr) + F_gravity(terrain_angle, rover, planet)
+    
     return Fslope
 
 
@@ -202,6 +210,7 @@ def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = 
     
     return W_motor
 
+
 def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> state vector. = dydt
     # INCOMPLETE, NEEDS WORK
     '''doc_string of rover_dynamics'''
@@ -221,7 +230,6 @@ def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> st
     if not isinstance(experiment, dict):
         raise Exception("experiment must be a dictionary")
     
-    
     v = float(y[0])
     x = float(y[1])
     
@@ -232,17 +240,13 @@ def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> st
                              bounds_error=False,
                              fill_value=(experiment['alpha_dist'][0], experiment['alpha_deg'][0]))
     
-    
     terrain_angle = float(alpha_fun(x))
     
     omega = motorW(v, rover)
     Fnet = float(F_net(omega, terrain_angle, rover, planet, experiment['Crr']))
     
-    
-    
     accel = float(Fnet / m_net)
     vel_deriv = float(v)
-    
     
     dydt = np.array([accel, vel_deriv])
     
@@ -268,7 +272,6 @@ def mechpower(v, rover): # calc instant mech pwr from single motor at given velo
 
 
 def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
-    # INCOMPLETE, Where is tau_dcmotor even supposed to be used here?
     '''documentation for battenergy'''
     
     if not (np.isscalar(t) or (isinstance(t, np.ndarray) and t.ndim == 1)):
@@ -293,7 +296,6 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
 
 
 def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
-    # INCOMPLETE
     if not isinstance(rover, dict):
         raise Exception("rover must be a dictionary")
         
@@ -305,13 +307,8 @@ def simulate_rover(rover, planet, experiment, end_event): # integrates trajector
     
     if not isinstance(end_event, dict):
         raise Exception("end_event must be a dictionary")
-    
-    
-    
-    
-    
-    
-    return
+        
+    return rover
 
 
 
