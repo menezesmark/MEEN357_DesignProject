@@ -384,7 +384,7 @@ def simulate_rover(rover, planet, experiment, end_event): # integrates trajector
     mission_event = end_of_mission_event(end_event)
 
     # Solve ODE
-    ssol = inte.solve_ivp(
+    sol = inte.solve_ivp(
         lambda t, y: rover_dynamics(t, y, rover, planet, experiment),
         experiment['time_range'],
         experiment['initial_conditions'],
