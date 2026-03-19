@@ -148,7 +148,11 @@ def F_drive(omega, rover): #return drive force Fd
 
 
 def F_gravity(terrain_angle, rover, planet): #still having some errors w/ validation
-    
+    '''
+    Returns gravitation force component on rover depending on angle
+    Input:  terrain_angle, rover, and planet
+    Returns:  Fgt
+    '''
     if not (np.isscalar(terrain_angle) or (isinstance(terrain_angle, np.ndarray) and terrain_angle.ndim == 1)):
         raise Exception('terrain_angle must be a scalar or vector')
     
@@ -168,7 +172,11 @@ def F_gravity(terrain_angle, rover, planet): #still having some errors w/ valida
 
 
 def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
-
+    '''
+    Returns the magnitude of the force due to rolling resistances given angle and rolling resistance coeff
+    Input:  omega, terrain_angle, rover, planet, and Crr
+    Returns: Frr
+    '''
     if not (np.isscalar(omega) or (isinstance(omega, np.ndarray) and omega.ndim == 1)):
         raise Exception("omega must be a scalar or 1D numpy array")
 
@@ -203,15 +211,20 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
 
 
 def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
-    
+    '''
+    quite litterally sums the forces no fancy docstring
+    '''
     Fslope = F_drive(omega, rover) + F_rolling(omega, terrain_angle, rover, planet, Crr) + F_gravity(terrain_angle, rover, planet)
     
     return Fslope
 
 
 def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = motorW
-    '''doc_string output for help()'''
-    
+    """
+    Calcs rotational speed of the motor shaft given rover speed and rover dict
+    Input v and rover
+    Returns W_motor
+    """
     if not (np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 1)):
         raise Exception("v must be a scalar or 1D numpy array")
         
@@ -232,8 +245,11 @@ def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = 
 
 
 def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> state vector. = dydt
-    # INCOMPLETE, NEEDS WORK
-    '''doc_string of rover_dynamics'''
+    '''
+    Calcs the derivitive of velocity/position vector with a state defined
+    Inputs: t, y, rover, planet, experiemnt
+    Retunrs dydt
+    '''
     
     if not (np.isscalar(t)):
         raise Exception("t must be a scalar")
@@ -274,8 +290,11 @@ def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> st
 
 
 def mechpower(v, rover): # calc instant mech pwr from single motor at given velo profile. = P
-    # a
-    '''documentation for mechpower'''
+    '''
+    Calcs instant mech power of one motor thru velo profile
+    Inputs: v and rover
+    Returns: P
+    '''
     
     if not (np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 1)):
         raise Exception("v must be a scalar or 1D numpy array")
@@ -292,7 +311,11 @@ def mechpower(v, rover): # calc instant mech pwr from single motor at given velo
 
 
 def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
-    '''documentation for battenergy'''
+    '''
+    Calcs total energy consumed from battery pack over time and velocity.
+    Inputs: t, v, rover
+    Returns: E
+    '''
     
     if not (np.isscalar(t) or (isinstance(t, np.ndarray) and t.ndim == 1)):
         raise Exception("t must be a scalar or 1D numpy array")    
@@ -332,7 +355,12 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
 
 
 def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
-    '''documentation for simulat_rover'''
+    '''
+    integrates rover trajectory and does telem to rover dict.
+    Inputs: rover, planet, experiemnt, end_event
+    Returns: rover
+    '''
+
     if not isinstance(rover, dict):
         raise Exception("rover must be a dictionary")
         
