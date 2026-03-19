@@ -287,6 +287,7 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
         if t.size != v.size:
             raise Exception("t and v must be the same size")
     
+    omega = motorW(v, rover)
     tau = tau_dcmotor(omega, motor)
     P = mechpower(v, rover)
 
