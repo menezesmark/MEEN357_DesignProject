@@ -291,7 +291,7 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
     tau = tau_dcmotor(omega, motor)
     P = mechpower(v, rover)
 
-    effcy_fun = interp1d(effcy_tau, effcy, kind = 'cubic') # fit the cubic spline
+    effcy_fun = inp.interp1d(effcy_tau, effcy, kind = 'cubic') # fit the cubic spline
 
     eta = alpha_fun(tau)
     Pbatt = P/eta
