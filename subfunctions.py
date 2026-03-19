@@ -67,6 +67,13 @@ end_event = {'max_distance' : 50,
 
 
 def get_mass(rover):
+
+    '''
+    Calcs total mass of the rover from info in rover dict
+    Input:  rover
+    Returns:  total_mass, 
+    '''
+
     if type(rover) is not dict:
         raise Exception('rover must be a dictionary')
         
@@ -83,7 +90,11 @@ def get_mass(rover):
 
 
 def get_gear_ratio(speed_reducer): #return speed ratio
-    
+    '''
+    Returns reduction ratio for speed reducer from speed_reducer dict
+    Input:  speed_reducer
+    Returns:  ng
+    '''
     if type(speed_reducer) is not dict:
         raise Exception('speed_reducer must be a dictionary')
 
@@ -96,6 +107,11 @@ def get_gear_ratio(speed_reducer): #return speed ratio
 
 
 def tau_dcmotor(omega, motor): #return motor shaft torque in rad/s
+    '''
+    Returns motor shaft torque given shaft speed + dict with motor specs
+    Input:  omega and motor
+    Returns: tau
+    '''
     if type(motor) is not dict:
         raise Exception('motor must be a dictionary')
 
@@ -108,7 +124,11 @@ def tau_dcmotor(omega, motor): #return motor shaft torque in rad/s
 
 
 def F_drive(omega, rover): #return drive force Fd
-    
+    '''
+    Returns force applied by the drive system given drive info system and shaft speed
+    Input:  omega and rover
+    Returns:  Fd
+    '''
     if type(rover) is not dict:
         raise Exception('rover must be a dictionary')
 
