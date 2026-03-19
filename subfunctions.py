@@ -322,23 +322,7 @@ def simulate_rover(rover, planet, experiment, end_event): # integrates trajector
         raise Exception("end_event must be a dictionary")
 
     # Event functions
-    # Stop if max distance reached
-    def event_distance(t, y):
-        return end_event['max_distance'] - y[1]
-    event_distance.terminal = True
-    event_distance.direction = -1
-
-    # Stop if max time reached
-    def event_time(t, y):
-        return end_event['max_time'] - t
-    event_time.terminal = True
-    event_time.direction = -1
-
-    # Stop if velocity too low
-    def event_velocity(t, y):
-        return y[0] - end_event['min_velocity']
-    event_velocity.terminal = True
-    event_velocity.direction = -1
+    mission_event = end_of_mission_event(end_event)
 
     # Solve ODE
     sol = solve_ivp(
