@@ -307,7 +307,58 @@ def simulate_rover(rover, planet, experiment, end_event): # integrates trajector
     
     if not isinstance(end_event, dict):
         raise Exception("end_event must be a dictionary")
-        
+
+    # Event functions
+ 
+    # Stop if max distance reached
+    def event_distance(t, y):
+        return end_event['max_distance'] - y[1]
+    event_distance.terminal = True
+    event_distance.direction = -1
+
+    # Stop if max time reached
+    def event_time(t, y):
+        return end_event['max_time'] - t
+    event_time.terminal = True
+    event_time.direction = -1
+
+    # Stop if velocity too low (rover stuck)
+    def event_velocity(t, y):
+        return y[0] - end_event['min_velocity']
+    event_velocity.terminal = True
+    event_velocity.direction = -1
+
+    # Solve ODE
+    sol = solve_ivp(
+        lambda t, y: rover_dynamics(t, y, rover, planet, experiment),
+        experiment['time_range'],
+        experiment['initial_conditions'],
+        events=[event_distance, event_time, event_velocity],
+    )
+
+    t = sol.t
+    v = sol.y[0]
+    x = sol.y[1]
+
+    P = mechpower(v, rover)
+
+    E = battenergy(t, v, rover)
+
+    # Make telem
+    rover['telemetry'] = {
+        'Time': t,
+        'completion_time': t[-1],
+        'velocity': v,
+        'position': x,
+        'distance_traveled': x[-1],
+        'max_velocity': np.max(v),
+        'average_velocity': np.mean(v),
+        'power': P,
+        'battery_energy': E,
+        'energy_per_distance': E / x[-1] if x[-1] > 0 else np.nan #bc sometimes its doesn't work
+    }
+
+
     return rover
 
 
