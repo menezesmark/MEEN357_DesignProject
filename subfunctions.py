@@ -9,6 +9,10 @@ import numpy as np
 import scipy as sci
 import scipy.interpolate as inp
 
+#############
+# commented non-function code below is to provide dictionary values for testing functions during development
+# if testing subfunctions or other scripts in this document, ensure these dictionaries are active and uncommented.
+#############
 
 planet = {'g': 3.72}
 
