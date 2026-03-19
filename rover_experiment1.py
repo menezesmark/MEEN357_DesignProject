@@ -6,6 +6,8 @@ from define_rover import *
 from define_planet import *
 from subfunctions import *
 
+'''This script simulates the rover'''
+
 experiment, end_event = experiment1()
 
 # Update end_event
