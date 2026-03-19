@@ -23,9 +23,6 @@ x = telemetry['position']
 P = telemetry['power']
 
 
-# ------------------------
-# Plot (3x1 required format)
-# ------------------------
 plt.figure()
 
 # Position vs Time
