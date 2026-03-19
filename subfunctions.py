@@ -304,6 +304,7 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
 
 
 def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
+    '''documentation for simulat_rover'''
     if not isinstance(rover, dict):
         raise Exception("rover must be a dictionary")
         
