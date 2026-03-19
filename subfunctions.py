@@ -291,8 +291,8 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
     tau = tau_dcmotor(omega, motor)
     P = mechpower(v, rover)
 
-    alpha_fun = inp.interp1d(experiment['effcy_tau'], 
-                             experiment['effcy'], 
+    alpha_fun = inp.interp1d(motor['effcy_tau'], 
+                             motor['effcy'], 
                              kind='cubic',
                              fill_value='extrapolate')
 
