@@ -47,3 +47,13 @@ plt.grid(True)
 
 plt.tight_layout()
 plt.show()
+
+
+print("\n--- Rover Telemetry Summary ---")
+print(f"Completion Time (s): {telemetry['completion_time']:.2f}")
+print(f"Distance Traveled (m): {telemetry['distance_traveled']:.2f}")
+print(f"Max Velocity (m/s): {telemetry['max_velocity']:.4f}")
+print(f"Average Velocity (m/s): {telemetry['average_velocity']:.4f}")
+print(f"Battery Energy (J): {telemetry['battery_energy']:.2f}")
+print(f"Energy per Distance (J/m): {telemetry['energy_per_distance']:.2f}")
+
