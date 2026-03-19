@@ -67,13 +67,12 @@ end_event = {'max_distance' : 50,
 
 
 def get_mass(rover):
-
     '''
-    Calcs total mass of the rover from info in rover dict
+    Calculates total mass of the rover from info in rover dict
     Input:  rover
-    Returns:  total_mass, 
+    Returns:  total_mass 
     '''
-
+    #Validate inputs
     if type(rover) is not dict:
         raise Exception('rover must be a dictionary')
         
@@ -95,6 +94,7 @@ def get_gear_ratio(speed_reducer): #return speed ratio
     Input:  speed_reducer
     Returns:  ng
     '''
+    #Validate Inputs
     if type(speed_reducer) is not dict:
         raise Exception('speed_reducer must be a dictionary')
 
@@ -112,6 +112,7 @@ def tau_dcmotor(omega, motor): #return motor shaft torque in rad/s
     Input:  omega and motor
     Returns: tau
     '''
+    #Validate Inputs
     if type(motor) is not dict:
         raise Exception('motor must be a dictionary')
 
@@ -129,6 +130,7 @@ def F_drive(omega, rover): #return drive force Fd
     Input:  omega and rover
     Returns:  Fd
     '''
+    # Validate inputs
     if type(rover) is not dict:
         raise Exception('rover must be a dictionary')
 
@@ -153,6 +155,7 @@ def F_gravity(terrain_angle, rover, planet): #still having some errors w/ valida
     Input:  terrain_angle, rover, and planet
     Returns:  Fgt
     '''
+    # Validate inputs
     if not (np.isscalar(terrain_angle) or (isinstance(terrain_angle, np.ndarray) and terrain_angle.ndim == 1)):
         raise Exception('terrain_angle must be a scalar or vector')
     
@@ -177,6 +180,7 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
     Input:  omega, terrain_angle, rover, planet, and Crr
     Returns: Frr
     '''
+    # Validate inputs
     if not (np.isscalar(omega) or (isinstance(omega, np.ndarray) and omega.ndim == 1)):
         raise Exception("omega must be a scalar or 1D numpy array")
 
@@ -199,7 +203,6 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
     if not (np.isscalar(Crr) and Crr > 0):
         raise Exception("Crr must be a positive scalar")
 
-    
     Fn = get_mass(rover) * planet['g'] * np.cos(np.deg2rad(terrain_angle))
     Frr_simple = Crr * Fn
     Ng = get_gear_ratio(rover['wheel_assembly']['speed_reducer'])
@@ -210,9 +213,9 @@ def F_rolling(omega, terrain_angle, rover, planet, Crr): #return rolling res
     return Frr
 
 
-def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
+def F_net(omega, terrain_angle, rover, planet, Crr):
     '''
-    quite litterally sums the forces no fancy docstring
+    Calculates sum of forces on rover
     '''
     Fslope = F_drive(omega, rover) + F_rolling(omega, terrain_angle, rover, planet, Crr) + F_gravity(terrain_angle, rover, planet)
     
@@ -222,8 +225,8 @@ def F_net(omega, terrain_angle, rover, planet, Crr): #return array of forces??
 def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = motorW
     """
     Calcs rotational speed of the motor shaft given rover speed and rover dict
-    Input v and rover
-    Returns W_motor
+    Input: v and rover
+    Returns: W_motor
     """
     if not (np.isscalar(v) or (isinstance(v, np.ndarray) and v.ndim == 1)):
         raise Exception("v must be a scalar or 1D numpy array")
@@ -231,7 +234,7 @@ def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = 
     if not isinstance(rover, dict):
         raise Exception("rover must be a dictionary")
     
-    # total rotation ratio from ground speed in x,y,(z?)
+    # total rotation ratio from ground speed
     # to tangential velocity into wheel speed
     # into the gearbox, all the way to the motor
     
@@ -246,9 +249,9 @@ def motorW(v, rover): #calc shaft speed from rover velo and characteristics w = 
 
 def rover_dynamics(t, y, rover, planet, experiment): #deriv of [velo, pos] -> state vector. = dydt
     '''
-    Calcs the derivitive of velocity/position vector with a state defined
+    Calculates the derivitive of velocity/position vector with a state defined
     Inputs: t, y, rover, planet, experiemnt
-    Retunrs dydt
+    Returns: dydt
     '''
     
     if not (np.isscalar(t)):
@@ -354,7 +357,7 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
 
 def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
     '''
-    Integrates rover trajectory and does telem to rover dict.
+    Integrates rover trajectory and does telem to rover dict
     Inputs: rover, planet, experiemnt, end_event
     Returns: rover
     '''
