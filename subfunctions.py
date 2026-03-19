@@ -319,10 +319,11 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
                              effcy,
                              kind='cubic',
                              fill_value='extrapolate')
-    
-    eff = np.clip(eff, 1e-6, 1.0)
+
     
     eta = effcy_fun(tau)
+    eta = np.clip(eff, 1e-6, 1.0)
+    
     Pbatt = 6*P_mech/eta
     
     E = np.trapz(Pbatt, t)
