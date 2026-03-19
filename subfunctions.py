@@ -343,10 +343,8 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
                              kind='cubic',
                              fill_value='extrapolate')
 
-    
     eta = effcy_fun(tau)
 
-    
     Pbatt = 6*P_mech/eta
     
     E = np.trapz(Pbatt, t)
@@ -356,7 +354,7 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
 
 def simulate_rover(rover, planet, experiment, end_event): # integrates trajectory of rover. = rover
     '''
-    integrates rover trajectory and does telem to rover dict.
+    Integrates rover trajectory and does telem to rover dict.
     Inputs: rover, planet, experiemnt, end_event
     Returns: rover
     '''
@@ -405,7 +403,6 @@ def simulate_rover(rover, planet, experiment, end_event): # integrates trajector
         'battery_energy': E,
         'energy_per_distance': E / x[-1] if x[-1] > 0 else np.nan #bc sometimes its doesn't work
     }
-
 
     return rover
 
