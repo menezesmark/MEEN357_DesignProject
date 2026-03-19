@@ -310,7 +310,7 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
     motor = rover['wheel_assembly']['motor']
     omega = motorW(v, rover)
     tau = tau_dcmotor(omega, motor)
-    P = mechpower(v, rover)
+    P_mech = mechpower(v, rover)
 
     effcy_tau = np.array(motor['effcy_tau'])
     effcy = np.array(motor['effcy'])
@@ -321,9 +321,9 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
                              fill_value='extrapolate')
     
     eta = effcy_fun(tau)
-    Pbatt = P/eta
+    Pbatt = 6*P_mch/eta
     
-    E = 6*np.trapz(Pbatt, t)
+    E = np.trapz(Pbatt, t)
     
     return E
 
