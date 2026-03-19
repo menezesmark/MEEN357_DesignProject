@@ -265,7 +265,7 @@ def mechpower(v, rover): # calc instant mech pwr from single motor at given velo
     
     w = motorW(v, rover)
     tau = tau_dcmotor(w, motor)
-    
+
     P = tau * w
     
     return P
@@ -289,8 +289,16 @@ def battenergy(t, v, rover): # calc total energy used over time-velo pair/ = E
     
     tau = tau_dcmotor(omega, motor)
     P = mechpower(v, rover)
+
+    alpha_fun = inp.interp1d(experiment['effcy_tau'], 
+                             experiment['effcy'], 
+                             kind='cubic',
+                             fill_value='extrapolate')
+
+    eta = alpha_fun(tau)
+    Pbatt = P/eta
     
-    E = 6*np.trapz(P, t)
+    E = 6*np.trapz(Pbatt, t)
     
     return E
 
