@@ -8,6 +8,8 @@ Created on Thu Jan 29 09:31:10 2026
 import numpy as np
 import scipy as sci
 import scipy.interpolate as inp
+import scipy.integrate as inte
+from end_of_mission_event import *
 
 #############
 # commented non-function code below is to provide dictionary values for testing functions during development
@@ -382,12 +384,11 @@ def simulate_rover(rover, planet, experiment, end_event): # integrates trajector
     mission_event = end_of_mission_event(end_event)
 
     # Solve ODE
-    sol = solve_ivp(
+    ssol = inte.solve_ivp(
         lambda t, y: rover_dynamics(t, y, rover, planet, experiment),
         experiment['time_range'],
         experiment['initial_conditions'],
-        events=[event_distance, event_time, event_velocity],
-    )
+        events=mission_event)
 
     t = sol.t
     v = sol.y[0]
@@ -412,13 +413,3 @@ def simulate_rover(rover, planet, experiment, end_event): # integrates trajector
     }
 
     return rover
-
-
-
-
-
-
-
-
-
-
