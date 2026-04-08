@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from subfunctions import *
 
-# TODO: fix
-
 Crr_array = np.linspace(0.01, 0.5, 25)
 slope_array_deg = np.linspace(-15, 35, 25)
 CRR, SLOPE = np.meshgrid(Crr_array, slope_array_deg)
