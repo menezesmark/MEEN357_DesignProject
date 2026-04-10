@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from scipy.interpolate import PchipInterpolator as pchip
 from scipy.integrate import solve_ivp
-import numpy.linalg as la
+from scipy.interpolate import interp1d
 
 
 def get_mass_rover(edl_system):
@@ -86,130 +86,6 @@ def F_buoyancy_descent(edl_system,planet,altitude):
     
     return F
 
-
-def Mach_Spline():
-    """
-    This function solves for the linear spline coefficients
-    for the mach data
-    """
-    
-    Mach_Cd_Data = np.array([[0.25, 1], 
-                         [0.5, 1], 
-                         [0.65, 1],
-                         [0.7, 0.97], 
-                         [0.8, 0.91], 
-                         [0.9, 0.72],
-                         [0.95, 0.66], 
-                         [1.0, 0.75], 
-                         [1.1, 0.90],
-                         [1.2, 0.96], 
-                         [1.3, 0.990], 
-                         [1.4, 0.999],
-                         [1.5, 0.992], 
-                         [1.6, 0.98], 
-                         [1.8, 0.91],
-                         [1.9, 0.85], 
-                         [2.0, 0.82], 
-                         [2.2, 0.75], 
-                         [2.5, 0.64],
-                         [2.6, 0.62],])
-    
-    x = Mach_Cd_Data[:, 0]
-    fx = Mach_Cd_Data[:, 1]
-    
-    ndata = len(x) # Num of data pts
-    nsegs = ndata -1
-    
-    
-    A = np.zeros((2*nsegs,2*nsegs)) # what shape should A be?
-    b = np.zeros((2*nsegs, 1)) # what shape should b be?
-    
-    ### Build all the equations in some kind of loop
-    # YOUR CODE HERE
-    for i in range(nsegs):
-        # for every segment, make 2 equations
-        n = 2*i
-        
-        A[n,n] = x[i] # thing that multiplies A coeff
-        A[n,(n)+1] = 1 # thing that multiplied b coeff
-        b[(n), 0] = fx[i]
-        
-        A[(n)+1, (n)] = x[i+1]
-        A[(n)+1, (n)+1] = 1
-        b[(n)+1,0] = fx[i+1]
-    
-    # During code verification, we can print the matrices to 
-    # ensure it matches our expectation (we should eventually
-    # comment this out).
-    
-    # solve the system
-    coeffs = la.solve(A, b)
-    
-    return coeffs
-
-def MachSplineInterp(xtest, coeffs):
-    """
-    This function predicts f(xtest) given the coeffs found
-    from LinearSpline and the x data.
-    used for the Mach data
-    """
-    
-    Mach_Cd_Data = np.array([[0.25, 1], 
-                         [0.5, 1], 
-                         [0.65, 1],
-                         [0.7, 0.97], 
-                         [0.8, 0.91], 
-                         [0.9, 0.72],
-                         [0.95, 0.66], 
-                         [1.0, 0.75], 
-                         [1.1, 0.90],
-                         [1.2, 0.96], 
-                         [1.3, 0.990], 
-                         [1.4, 0.999],
-                         [1.5, 0.992], 
-                         [1.6, 0.98], 
-                         [1.8, 0.91],
-                         [1.9, 0.85], 
-                         [2.0, 0.82], 
-                         [2.2, 0.75], 
-                         [2.5, 0.64],
-                         [2.6, 0.62],])
-    
-    x = Mach_Cd_Data[:, 0]
-    
-    # let's assume that xtest could be a scalar or vector
-    xtest = np.atleast_1d(xtest)  # makes sure 'len' will work if a scalar is input
-    coeffs = coeffs.ravel()
-    fapprox = np.zeros((len(xtest), 1)) # initialize output
-
-    ### Using a loop structure, determine the correct coefficients and approximate f(x) for each point in xtest
-    # YOUR CODE HERE
-    
-    # define bounds based on x, associate coeffs w/ bounds
-    # check which bounds that xtest falls within
-    # create flexible equation maker based on found x bounds
-    # output f value with equation
-    # found = False
-    # n=0
-    # while found == False:
-    #     if xtest < x[n]:
-    #         a = x[n-1]
-    
-    # iteratively check xtest val against all data 
-    # untill i find that I am less than one of the xdata values. 
-    # Then find the proper coeffs and plug into lin eq.
-    for i, xx in enumerate(xtest):
-        if xx < min(x) or xx > max(x):
-            fapprox[i] = np.nan # no extrapolate
-        else:
-            for j in range(len(x)-1):
-                if xx <= x[j+1]:
-                    fapprox[i] = coeffs[2*j]*xx + coeffs[2*j+1]
-                    break
-    
-    return fapprox
-
-
 def F_drag_descent(edl_system,planet,altitude,velocity):
     
     # Compute the net drag force. 
@@ -237,21 +113,37 @@ def F_drag_descent(edl_system,planet,altitude,velocity):
     # if the parachute is in the deployed state, need to account for its area
     # in the drag calculation
     if edl_system['parachute']['deployed'] and not edl_system['parachute']['ejected']:
-        if edl_system['use_dynamic_Cd'] == True:
-            # Updated version of Cd for parachute will be output into here ultimately
+        ACd_parachute = np.pi*(edl_system['parachute']['diameter']/2.0)**2*edl_system['parachute']['Cd']
+    
+    # --- NEW MEF DRAG LOGIC ---
+        # Checks if the 'use_mef' is True in the parachute configuration. If so, it applies a 
+        # Mach Efficiency Factor (MEF) to the parachute's ACd based on the current Mach number. 
+        # The MEF is determined by interpolating from a provided table of Mach numbers and 
+        # corresponding efficiency factors. This allows for a more accurate drag calculation 
+        # that accounts for changes in parachute performance at different speeds.
+        if edl_system['parachute']['use_mef'] == True:
+            # Data from the table in the project description. Mach numbers and corresponding MEF values.
+            # Note that the Mach numbers should cover the range of expected velocities during descent,
+            # and the MEF values should reflect the performance of the parachute at those speeds.
+            mach_data = np.array([0.25, 0.5, 0.65, 0.7, 0.8, 0.9, 0.95, 1.0, 1.1, 
+                                  1.2, 1.3, 1.4, 1.5, 1.6, 1.8, 1.9, 2.0, 2.2, 2.5, 2.6])
             
+            mef_data = np.array([1.0, 1.0, 1.0, 0.97, 0.91, 0.72, 0.66, 0.75, 0.90, 
+                                 0.96, 0.990, 0.999, 0.992, 0.98, 0.91, 0.85, 0.82, 0.75, 0.64, 0.62])
+            
+            # Convert current velocity to Mach number using the v2M_Mars function
             M = v2M_Mars(velocity, altitude)
             
-            coeffs = Mach_Spline()
-            MEF = MachSplineInterp(M, coeffs)
+            # Interpolate to find the current MEF based on Mach number; 
+            # have to set bounds_error=False and fill_value to handle cases where Mach number is outside the 
+            # provided data range. HAVE TO USE FILL_VALUE OTHEWISE IT BRICKS WHEN THE DIAMETER IS 19M FOR SOME REASON IDK WHYY
+            mef_interp = interp1d(mach_data, mef_data, bounds_error=False, fill_value=(1.0, 0.62))
+            MEF = mef_interp(M)
             
-            ACd_parachute = np.pi*(edl_system['parachute']['diameter']/2.0)**2*MEF*edl_system['parachute']['Cd']
-            
-        elif edl_system['use_dynamic_Cd'] == False:
-            ACd_parachute = np.pi*(edl_system['parachute']['diameter']/2.0)**2*edl_system['parachute']['Cd']
-        else:
-            Exception("dynamic Cd system fail inside drag function")
-        
+            # Apply the efficiency factor to the parachute's ACd
+            ACd_parachute = ACd_parachute * MEF
+        # -------------------------------------
+    
     else:
         ACd_parachute = 0.0
     
