@@ -35,7 +35,7 @@ def redefine_edl_system(edl_system):
     
     edl_system['rover'] = rover
     del rover
-    
+
     
     rocket = edl_system['rocket']
     rocket.pop('control', None)

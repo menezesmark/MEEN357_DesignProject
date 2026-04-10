@@ -17,29 +17,14 @@ time = []
 landing_speeds = []
 success = []
 
-# parachute Cd assumption change goes here?
-use_dynamic = input("Use Dyanamic Cd? (Adjusts to Mach Number) [y/n]: ")
-if use_dynamic == 'y':
-    # update some part of edl_system dist to hold value to activate Cd
-    print("Dyanamic Cd Selected")
-    use_dynamic_Cd = True
-elif use_dynamic == 'n':
-    print('Static Cd selected')
-    use_dynamic_Cd = False
-else:
-    Exception("Must input 'y' or 'n' into prompts")
-
-
 for diam in test_diams:
     print(f"\n--- Simulating Parachute Diameter: {diam} m ---")
     
     # re-initialize the EDL system inside the loop so fuel and hardware states reset
     edl_system = define_edl_system_1()
     
-    # Applied or does not apply the dynamic Cd system
-    edl_system['use_dynamic_Cd'] = use_dynamic_Cd
-    
     # Apply initial conditions
+    edl_system['parachute']['use_mef'] = True # Enable the nonlinear drag model for this specific run
     edl_system['altitude'] = 11000    # [m] initial altitude
     edl_system['velocity'] = -590     # [m/s] initial velocity
     edl_system['rocket']['on'] = False 
