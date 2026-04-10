@@ -24,6 +24,7 @@ for diam in test_diams:
     edl_system = define_edl_system_1()
     
     # Apply initial conditions
+    edl_system['parachute']['use_mef'] = True # Enable the nonlinear drag model for this specific run
     edl_system['altitude'] = 11000    # [m] initial altitude
     edl_system['velocity'] = -590     # [m/s] initial velocity
     edl_system['rocket']['on'] = False 

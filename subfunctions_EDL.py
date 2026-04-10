@@ -10,6 +10,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from scipy.interpolate import PchipInterpolator as pchip
 from scipy.integrate import solve_ivp
+from scipy.interpolate import interp1d
 
 
 def get_mass_rover(edl_system):
@@ -113,6 +114,36 @@ def F_drag_descent(edl_system,planet,altitude,velocity):
     # in the drag calculation
     if edl_system['parachute']['deployed'] and not edl_system['parachute']['ejected']:
         ACd_parachute = np.pi*(edl_system['parachute']['diameter']/2.0)**2*edl_system['parachute']['Cd']
+    
+    # --- NEW MEF DRAG LOGIC ---
+        # Checks if the 'use_mef' is True in the parachute configuration. If so, it applies a 
+        # Mach Efficiency Factor (MEF) to the parachute's ACd based on the current Mach number. 
+        # The MEF is determined by interpolating from a provided table of Mach numbers and 
+        # corresponding efficiency factors. This allows for a more accurate drag calculation 
+        # that accounts for changes in parachute performance at different speeds.
+        if edl_system['parachute']['use_mef'] == True:
+            # Data from the table in the project description. Mach numbers and corresponding MEF values.
+            # Note that the Mach numbers should cover the range of expected velocities during descent,
+            # and the MEF values should reflect the performance of the parachute at those speeds.
+            mach_data = np.array([0.25, 0.5, 0.65, 0.7, 0.8, 0.9, 0.95, 1.0, 1.1, 
+                                  1.2, 1.3, 1.4, 1.5, 1.6, 1.8, 1.9, 2.0, 2.2, 2.5, 2.6])
+            
+            mef_data = np.array([1.0, 1.0, 1.0, 0.97, 0.91, 0.72, 0.66, 0.75, 0.90, 
+                                 0.96, 0.990, 0.999, 0.992, 0.98, 0.91, 0.85, 0.82, 0.75, 0.64, 0.62])
+            
+            # Convert current velocity to Mach number using the v2M_Mars function
+            M = v2M_Mars(velocity, altitude)
+            
+            # Interpolate to find the current MEF based on Mach number; 
+            # have to set bounds_error=False and fill_value to handle cases where Mach number is outside the 
+            # provided data range. HAVE TO USE FILL_VALUE OTHEWISE IT BRICKS WHEN THE DIAMETER IS 19M FOR SOME REASON IDK WHYY
+            mef_interp = interp1d(mach_data, mef_data, bounds_error=False, fill_value=(1.0, 0.62))
+            MEF = mef_interp(M)
+            
+            # Apply the efficiency factor to the parachute's ACd
+            ACd_parachute = ACd_parachute * MEF
+        # -------------------------------------
+    
     else:
         ACd_parachute = 0.0
     

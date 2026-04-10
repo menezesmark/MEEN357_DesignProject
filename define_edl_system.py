@@ -21,7 +21,8 @@ def define_edl_system_1():
                  'ejected' : False,  # true means parachute no longer is attached to system
                  'diameter' : 16.25, # [m] (MSL is about 16 m)
                  'Cd' : 0.615,       # [-] (0.615 is nominal for subsonic)
-                 'mass' : 185.0}     # [kg] (this is a wild guess -- no data found)
+                 'mass' : 185.0,      
+                 'use_mef' : False}     # whether or not to use mef
         
     # Rocket dict.  This defines a SINGLE rocket.
     rocket = {'on' : False,
