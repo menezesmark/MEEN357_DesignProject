@@ -10,6 +10,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from scipy.interpolate import PchipInterpolator as pchip
 from scipy.integrate import solve_ivp
+import numpy.linalg as la
 
 
 def get_mass_rover(edl_system):
@@ -85,6 +86,130 @@ def F_buoyancy_descent(edl_system,planet,altitude):
     
     return F
 
+
+def Mach_Spline():
+    """
+    This function solves for the linear spline coefficients
+    for the mach data
+    """
+    
+    Mach_Cd_Data = np.array([[0.25, 1], 
+                         [0.5, 1], 
+                         [0.65, 1],
+                         [0.7, 0.97], 
+                         [0.8, 0.91], 
+                         [0.9, 0.72],
+                         [0.95, 0.66], 
+                         [1.0, 0.75], 
+                         [1.1, 0.90],
+                         [1.2, 0.96], 
+                         [1.3, 0.990], 
+                         [1.4, 0.999],
+                         [1.5, 0.992], 
+                         [1.6, 0.98], 
+                         [1.8, 0.91],
+                         [1.9, 0.85], 
+                         [2.0, 0.82], 
+                         [2.2, 0.75], 
+                         [2.5, 0.64],
+                         [2.6, 0.62],])
+    
+    x = Mach_Cd_Data[:, 0]
+    fx = Mach_Cd_Data[:, 1]
+    
+    ndata = len(x) # Num of data pts
+    nsegs = ndata -1
+    
+    
+    A = np.zeros((2*nsegs,2*nsegs)) # what shape should A be?
+    b = np.zeros((2*nsegs, 1)) # what shape should b be?
+    
+    ### Build all the equations in some kind of loop
+    # YOUR CODE HERE
+    for i in range(nsegs):
+        # for every segment, make 2 equations
+        n = 2*i
+        
+        A[n,n] = x[i] # thing that multiplies A coeff
+        A[n,(n)+1] = 1 # thing that multiplied b coeff
+        b[(n), 0] = fx[i]
+        
+        A[(n)+1, (n)] = x[i+1]
+        A[(n)+1, (n)+1] = 1
+        b[(n)+1,0] = fx[i+1]
+    
+    # During code verification, we can print the matrices to 
+    # ensure it matches our expectation (we should eventually
+    # comment this out).
+    
+    # solve the system
+    coeffs = la.solve(A, b)
+    
+    return coeffs
+
+def MachSplineInterp(xtest, coeffs):
+    """
+    This function predicts f(xtest) given the coeffs found
+    from LinearSpline and the x data.
+    used for the Mach data
+    """
+    
+    Mach_Cd_Data = np.array([[0.25, 1], 
+                         [0.5, 1], 
+                         [0.65, 1],
+                         [0.7, 0.97], 
+                         [0.8, 0.91], 
+                         [0.9, 0.72],
+                         [0.95, 0.66], 
+                         [1.0, 0.75], 
+                         [1.1, 0.90],
+                         [1.2, 0.96], 
+                         [1.3, 0.990], 
+                         [1.4, 0.999],
+                         [1.5, 0.992], 
+                         [1.6, 0.98], 
+                         [1.8, 0.91],
+                         [1.9, 0.85], 
+                         [2.0, 0.82], 
+                         [2.2, 0.75], 
+                         [2.5, 0.64],
+                         [2.6, 0.62],])
+    
+    x = Mach_Cd_Data[:, 0]
+    
+    # let's assume that xtest could be a scalar or vector
+    xtest = np.atleast_1d(xtest)  # makes sure 'len' will work if a scalar is input
+    coeffs = coeffs.ravel()
+    fapprox = np.zeros((len(xtest), 1)) # initialize output
+
+    ### Using a loop structure, determine the correct coefficients and approximate f(x) for each point in xtest
+    # YOUR CODE HERE
+    
+    # define bounds based on x, associate coeffs w/ bounds
+    # check which bounds that xtest falls within
+    # create flexible equation maker based on found x bounds
+    # output f value with equation
+    # found = False
+    # n=0
+    # while found == False:
+    #     if xtest < x[n]:
+    #         a = x[n-1]
+    
+    # iteratively check xtest val against all data 
+    # untill i find that I am less than one of the xdata values. 
+    # Then find the proper coeffs and plug into lin eq.
+    for i, xx in enumerate(xtest):
+        if xx < min(x) or xx > max(x):
+            fapprox[i] = np.nan # no extrapolate
+        else:
+            for j in range(len(x)-1):
+                if xx <= x[j+1]:
+                    fapprox[i] = coeffs[2*j]*xx + coeffs[2*j+1]
+                    break
+    
+    return fapprox
+
+
 def F_drag_descent(edl_system,planet,altitude,velocity):
     
     # Compute the net drag force. 
@@ -112,7 +237,21 @@ def F_drag_descent(edl_system,planet,altitude,velocity):
     # if the parachute is in the deployed state, need to account for its area
     # in the drag calculation
     if edl_system['parachute']['deployed'] and not edl_system['parachute']['ejected']:
-        ACd_parachute = np.pi*(edl_system['parachute']['diameter']/2.0)**2*edl_system['parachute']['Cd']
+        if edl_system['use_dynamic_Cd'] == True:
+            # Updated version of Cd for parachute will be output into here ultimately
+            
+            M = v2M_Mars(velocity, altitude)
+            
+            coeffs = Mach_Spline()
+            MEF = MachSplineInterp(M, coeffs)
+            
+            ACd_parachute = np.pi*(edl_system['parachute']['diameter']/2.0)**2*MEF*edl_system['parachute']['Cd']
+            
+        elif edl_system['use_dynamic_Cd'] == False:
+            ACd_parachute = np.pi*(edl_system['parachute']['diameter']/2.0)**2*edl_system['parachute']['Cd']
+        else:
+            Exception("dynamic Cd system fail inside drag function")
+        
     else:
         ACd_parachute = 0.0
     
@@ -316,7 +455,7 @@ def edl_events(edl_system, mission_events):
     return events
 
 def edl_dynamics(t, y, edl_system, planet):
-
+    
     # Dynamics of EDL as it descends and lowers the rover to the surface. 
     # State vector: 
     #   y=[vel_edl;pos_edl;fuel_mass;ei_vel;ei_pos;vel_rov;pos_rov]
@@ -558,9 +697,9 @@ def update_edl_state(edl_system, TE, YE, Y, ITER_INFO):
     # num_events = len(TE)
 
     for i in range(9):  
-
+        
         event = i
-
+        
         if event == 0:  # heat shield eject
             if TE[i].size != 0:
                 time = TE[i][0]
@@ -786,7 +925,7 @@ def simulate_edl(edl_system, planet, mission_events, tmax, ITER_INFO):
         Y_part = sol.y
         TE = sol.t_events
         YE = sol.y_events
-    
+        
         # process the event and update the edl_system accordingly. Also sets
         # the initial conditions for the next stage (in y0) and the
         # TERMINATE_SIM flag.
@@ -804,7 +943,7 @@ def simulate_edl(edl_system, planet, mission_events, tmax, ITER_INFO):
         Y = np.hstack((Y, Y_part))
         #T.append(t_part)
         #Y.append(Y_part)
-
+        
         
         # This looks for whether we're out of time. other termination
         # conditions checked in update_edl_state
