@@ -115,7 +115,7 @@ def Mach_Spline():
                          [2.6, 0.62],])
     
     x = Mach_Cd_Data[:, 0]
-    fx = Mach_Cd_Data[: 1]
+    fx = Mach_Cd_Data[:, 1]
     
     ndata = len(x) # Num of data pts
     nsegs = ndata -1
@@ -141,12 +141,9 @@ def Mach_Spline():
     # During code verification, we can print the matrices to 
     # ensure it matches our expectation (we should eventually
     # comment this out).
-    print(A)
-    print(b)
     
     # solve the system
     coeffs = la.solve(A, b)
-    print(coeffs)
     
     return coeffs
 
