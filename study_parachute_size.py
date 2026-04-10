@@ -76,7 +76,7 @@ axs[1].set_ylabel('Speed [m/s]')
 axs[1].grid(True)
 
 # Plot 3: Landing Success vs Diameter
-axs[2].step(test_diams, success, marker='^', color='g')
+axs[2].step(test_diams, success, marker='^', color='g', linestyle='')
 axs[2].set_title('Rover Landing Success vs. Parachute Diameter')
 axs[2].set_xlabel('Parachute Diameter [m]')
 axs[2].set_ylabel('Success (1) / Failure (0)')
