@@ -347,7 +347,7 @@ def edl_events(edl_system, mission_events):
     return events
 
 def edl_dynamics(t, y, edl_system, planet):
-
+    
     # Dynamics of EDL as it descends and lowers the rover to the surface. 
     # State vector: 
     #   y=[vel_edl;pos_edl;fuel_mass;ei_vel;ei_pos;vel_rov;pos_rov]
@@ -589,9 +589,9 @@ def update_edl_state(edl_system, TE, YE, Y, ITER_INFO):
     # num_events = len(TE)
 
     for i in range(9):  
-
+        
         event = i
-
+        
         if event == 0:  # heat shield eject
             if TE[i].size != 0:
                 time = TE[i][0]
@@ -817,7 +817,7 @@ def simulate_edl(edl_system, planet, mission_events, tmax, ITER_INFO):
         Y_part = sol.y
         TE = sol.t_events
         YE = sol.y_events
-    
+        
         # process the event and update the edl_system accordingly. Also sets
         # the initial conditions for the next stage (in y0) and the
         # TERMINATE_SIM flag.
@@ -835,7 +835,7 @@ def simulate_edl(edl_system, planet, mission_events, tmax, ITER_INFO):
         Y = np.hstack((Y, Y_part))
         #T.append(t_part)
         #Y.append(Y_part)
-
+        
         
         # This looks for whether we're out of time. other termination
         # conditions checked in update_edl_state

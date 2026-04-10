@@ -64,8 +64,8 @@ def define_edl_system_1():
     rover = define_rover_4()
         
     # pack everything together and clean up subdicts.
-    edl_system = {'altitude' : np.NaN,   # system state variable that is updated throughout simulation
-                  'velocity' : np.NaN,   # system state variable that is updated throughout simulation
+    edl_system = {'altitude' : np.nan,   # system state variable that is updated throughout simulation
+                  'velocity' : np.nan,   # system state variable that is updated throughout simulation
                   'num_rockets' : 8,     # system level parameter
                   'volume' :150,         # system level parameter
                   'parachute' : parachute,
@@ -74,7 +74,8 @@ def define_edl_system_1():
                   'speed_control' : speed_control,
                   'position_control' : position_control,
                   'sky_crane' : sky_crane,
-                  'rover' : rover}
+                  'rover' : rover,
+                  'use_dynamic_Cd': False}
         
     #del parachute, rocket, speed_control, position_control, sky_crane
     #del heat_shield, rover
