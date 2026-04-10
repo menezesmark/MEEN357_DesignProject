@@ -13,11 +13,14 @@ mission_events = define_mission_events()
 
 edl_system['altitude'] = 11000    # [m] initial altitude
 edl_system['velocity'] = -590     # [m/s] initial velocity
+edl_system['rockets']['on'] = False 
 edl_system['parachute']['deployed'] = True   # our parachute is open
 edl_system['parachute']['diameter'] = test_diams   # replace with array of diameters to test
 edl_system['parachute']['ejected'] = False   # and still attached
-edl_system['rover']['on_ground'] = False # the rover has not yet landed
-edl_system['parachute']['diameter'] = 18.0
+edl_system['heat_shield']['ejected'] = False # heat shield is still attached
+edl_system['sky_crane']['on'] = False # sky crane is not yet active
+edl_system['speed_control']['on'] = False # speed control is not yet active
+edl_system['position_control']['on'] = False # position control is not yet active
 
 tmax = 2000   # [s] maximum simulated time
 
@@ -26,6 +29,7 @@ for i in range(len(test_diams)):
     edl_system['parachute']['diameter'] = test_diams[i]
     # the simulation. changing last argument to false turns off message echo
     [t, Y, edl_system] = simulate_edl(edl_system, mars, mission_events, tmax, True)
+    
 
 # visualize the simulation results
 plot1 = plt.figure(0)
