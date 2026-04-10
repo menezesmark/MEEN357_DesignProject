@@ -73,7 +73,8 @@ def define_edl_system_1():
                   'speed_control' : speed_control,
                   'position_control' : position_control,
                   'sky_crane' : sky_crane,
-                  'rover' : rover}
+                  'rover' : rover,
+                  'use_dynamic_Cd': False}
         
     #del parachute, rocket, speed_control, position_control, sky_crane
     #del heat_shield, rover
