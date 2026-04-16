@@ -188,7 +188,7 @@ edl_system['team_name'] = 'SixtySevenMinusThree'  # change this to something fun
 edl_system['team_number'] = 64    # change this to your assigned team number (also change it below when saving your pickle file)
 
 # This will create a file that you can submit as your competition file.
-with open('FA24_501team99.pickle', 'wb') as handle:
+with open('SP26_501team64.pickle', 'wb') as handle:
     pickle.dump(edl_system, handle, protocol=pickle.HIGHEST_PROTOCOL)
 # *****************************************************************************
 
