@@ -158,6 +158,8 @@ if feasible:
     xbest = res.x
     fbest = res.fun
 else:  # nonsense to let us know this did not work
+    print(xbest) #to see what doesnt work
+    print(fval) #to see what doesnt work
     xbest = [99999, 99999, 99999, 99999, 99999]
     fval = [99999]
     raise Exception('Solution not feasible, exiting code...')
@@ -182,8 +184,8 @@ edl_system['rocket']['fuel_mass'] = xbest[4]
 # These lines save your design for submission for the rover competition.
 # You will want to change them to match your team information.
 
-edl_system['team_name'] = 'FunTeamName'  # change this to something fun for your team (or just your team number)
-edl_system['team_number'] = 99    # change this to your assigned team number (also change it below when saving your pickle file)
+edl_system['team_name'] = 'SixtySevenMinusThree'  # change this to something fun for your team (or just your team number)
+edl_system['team_number'] = 64    # change this to your assigned team number (also change it below when saving your pickle file)
 
 # This will create a file that you can submit as your competition file.
 with open('FA24_501team99.pickle', 'wb') as handle:
