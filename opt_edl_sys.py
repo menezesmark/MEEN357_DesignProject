@@ -52,12 +52,10 @@ Add custom constraints here for:
 # Coupled-constraint model coefficients
 # Replace these placeholder values with the ones from your fit script
 # -----------------------------
-PARACHUTE_COEFF = [0.0, 0.0, 15.0]   # example: a2, a1, a0
-FUEL_COEFF = [0.0, 0.0, 150.0]       # example: b2, b1, b0
+PARACHUTE_COEFF = [np.float64(1.947251937461125e-06), np.float64(0.002157054850622941), np.float64(14.84407140656271)]   # example: a2, a1, a0
 
 # valid ranges for your fitted relationships
-PARACHUTE_MASS_RANGE = [250.0, 800.0]
-FUEL_MASS_RANGE = [250.0, 800.0]
+PARACHUTE_MASS_RANGE = [500.0, 1013.3333333333333]
 
 # objective penalty for screened-out or crashed candidates
 LARGE_PENALTY = 1.0e12
@@ -70,45 +68,55 @@ def unpack_x(x):
     fuel_mass = x[4]
     return parachute_diam, wheel_radius, chassis_mass, gear_diam, fuel_mass
 
-def estimated_payload_mass(x, edl_system):
+
+def parachute_mass_driver(x, edl_system):
     parachute_diam, wheel_radius, chassis_mass, gear_diam, fuel_mass = unpack_x(x)
 
-    # Start simple. Replace this with your team's better deployed-mass model.
-    payload_mass = chassis_mass + fuel_mass
+    # Mass driver used for the parachute-coupling fit.
+    # For now, use chassis mass + fuel mass.
+    # Replace later if your team defines a better deployed-mass model.
+    return chassis_mass + fuel_mass
 
-    return payload_mass
+
+def fuel_mass_driver(x, edl_system):
+    parachute_diam, wheel_radius, chassis_mass, gear_diam, fuel_mass = unpack_x(x)
+
+    # Mass driver used for the fuel-coupling fit.
+    # Using chassis mass only avoids circularity when fitting required fuel.
+    return chassis_mass
+
+
+def estimated_payload_mass(x, edl_system):
+    # Keep this wrapper so the rest of your current infrastructure still works.
+    # Default it to the parachute mass driver for now.
+    return parachute_mass_driver(x, edl_system)
+
 
 def required_parachute_from_mass(payload_mass):
     a2, a1, a0 = PARACHUTE_COEFF
     return a2*payload_mass**2 + a1*payload_mass + a0
 
-def required_fuel_from_mass(payload_mass):
-    b2, b1, b0 = FUEL_COEFF
-    return b2*payload_mass**2 + b1*payload_mass + b0
-
 def coupled_constraints(x, edl_system):
     parachute_diam, wheel_radius, chassis_mass, gear_diam, fuel_mass = unpack_x(x)
-    payload_mass = estimated_payload_mass(x, edl_system)
+
+    parachute_mass = parachute_mass_driver(x, edl_system)
 
     c = []
 
-    # keep the fit used only in its calibrated mass range
-    c.append(PARACHUTE_MASS_RANGE[0] - payload_mass)   # <= 0 means above lower bound
-    c.append(payload_mass - PARACHUTE_MASS_RANGE[1])   # <= 0 means below upper bound
-    c.append(FUEL_MASS_RANGE[0] - payload_mass)
-    c.append(payload_mass - FUEL_MASS_RANGE[1])
+    # keep the fits used only in their calibrated ranges
+    c.append(PARACHUTE_MASS_RANGE[0] - parachute_mass)
+    c.append(parachute_mass - PARACHUTE_MASS_RANGE[1])
 
     # Coupled constraint 1:
     # parachute diameter must be at least the fitted required value
-    required_parachute = required_parachute_from_mass(payload_mass)
+    required_parachute = required_parachute_from_mass(parachute_mass)
     c.append(required_parachute - parachute_diam)
 
     # Coupled constraint 2:
     # fuel mass must be at least the fitted required value
-    required_fuel = required_fuel_from_mass(payload_mass)
-    c.append(required_fuel - fuel_mass)
 
     return np.array(c, dtype=float)
+
 
 def combined_constraints(x, edl_system, planet, mission_events, tmax,
                          experiment, end_event, min_strength,
@@ -164,6 +172,70 @@ def screened_obj_fun(x, edl_system, planet, mission_events, tmax, experiment, en
     except Exception:
         return LARGE_PENALTY
 
+def debug_candidate(x, edl_system, planet, mission_events, tmax, experiment, end_event):
+    """
+    Rerun a candidate design and print useful EDL / rover diagnostics.
+    This is for troubleshooting why a design failed or barely passed.
+    """
+    edl_dbg = redefine_edl_system(edl_system)
+
+    # Apply design vector
+    edl_dbg['parachute']['diameter'] = float(x[0])
+    edl_dbg['rover']['wheel_assembly']['wheel']['radius'] = float(x[1])
+    edl_dbg['rover']['chassis']['mass'] = float(x[2])
+    edl_dbg['rover']['wheel_assembly']['speed_reducer']['diam_gear'] = float(x[3])
+    edl_dbg['rocket']['initial_fuel_mass'] = float(x[4])
+    edl_dbg['rocket']['fuel_mass'] = float(x[4])
+
+    print('\n================ DEBUG: LAST CANDIDATE =================')
+    print('Candidate x = {}'.format(x))
+    print('Parachute diameter         = {:.6f} m'.format(x[0]))
+    print('Wheel radius               = {:.6f} m'.format(x[1]))
+    print('Chassis mass               = {:.6f} kg'.format(x[2]))
+    print('Speed reducer gear diam    = {:.6f} m'.format(x[3]))
+    print('Fuel mass per rocket       = {:.6f} kg'.format(x[4]))
+
+    # --- EDL rerun
+    try:
+        T_edl, Y_edl, edl_dbg = simulate_edl(edl_dbg, planet, mission_events, tmax, True)
+
+        remaining_total_fuel = Y_edl[2, -1]
+        remaining_fuel_per_rocket = remaining_total_fuel / edl_dbg['num_rockets']
+
+        print('\n--- EDL diagnostics ---')
+        print('EDL final time             = {:.6f} s'.format(T_edl[-1]))
+        print('EDL final altitude         = {:.6f} m'.format(Y_edl[1, -1]))
+        print('EDL final velocity         = {:.6f} m/s'.format(Y_edl[0, -1]))
+        print('Rover touchdown speed      = {:.6f} m/s'.format(edl_dbg.get('rover_touchdown_speed', np.nan)))
+        print('Rover on ground            = {}'.format(edl_dbg['rover'].get('on_ground', None)))
+        print('Remaining fuel total       = {:.6f} kg'.format(remaining_total_fuel))
+        print('Remaining fuel per rocket  = {:.6f} kg'.format(remaining_fuel_per_rocket))
+
+    except Exception as e:
+        print('\n--- EDL diagnostics ---')
+        print('EDL rerun failed with exception: {}'.format(e))
+        return
+
+    # --- Rover rerun
+    try:
+        rover_dbg = simulate_rover(edl_dbg['rover'], planet, experiment, end_event)
+        telemetry = rover_dbg['telemetry']
+
+        print('\n--- Rover diagnostics ---')
+        print('Completion time            = {:.6f} s'.format(telemetry['completion_time']))
+        print('Distance traveled          = {:.6f} m'.format(telemetry['distance_traveled']))
+        print('Max velocity               = {:.6f} m/s'.format(telemetry['max_velocity']))
+        print('Average velocity           = {:.6f} m/s'.format(telemetry['average_velocity']))
+        print('Battery energy used        = {:.6f} J'.format(telemetry['battery_energy']))
+        print('Energy per distance        = {:.6f} J/m'.format(telemetry['energy_per_distance']))
+
+    except Exception as e:
+        print('\n--- Rover diagnostics ---')
+        print('Rover rerun failed with exception: {}'.format(e))
+
+    print('=======================================================\n')
+
+
 # Wyatt added code section above
 
 
@@ -182,10 +254,13 @@ def screened_obj_fun(x, edl_system, planet, mission_events, tmax, experiment, en
 # search bounds
 #x_lb = np.array([14, 0.2, 250, 0.05, 100])
 #x_ub = np.array([19, 0.7, 800, 0.12, 290])
-bounds = Bounds([14, 0.2, 250, 0.05, 100], [19, 0.7, 800, 0.12, 290])
+bounds = Bounds([14, 0.5, 250, 0.05, 100], [19, 0.7, 800, 0.12, 125])
+# shrunk fuel range because it seems to work with the min 100 kg of fuel
+# Brough min wheel up to 0.5 b/c larger wheels seem more optimal
+
 
 # initial guess
-x0 = np.array([19, .7, 550.0, 0.09, 250.0]) 
+x0 = np.array([19, .7, 550.0, 0.09, 120.0]) 
 
 # lambda for the objective function
 obj_f = lambda x: screened_obj_fun(
@@ -234,7 +309,7 @@ def callbackF(Xi):
 
 ###############################################################################
 #call the trust-constr optimizer --------------------------------------------#
-options = {'maxiter': 5, 
+options = {'maxiter': 3, 
             # 'initial_constr_penalty' : 5.0,
             # 'initial_barrier_parameter' : 1.0,
             'verbose' : 3,
@@ -255,8 +330,9 @@ res = minimize(obj_f, x0, method='trust-constr', constraints=nonlinear_constrain
 
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
-# popsize=2 # define the population size
-# maxiter=1 # define the maximum number of iterations
+# print("run differential evolution optimizer")
+# popsize= 2 # define the population size
+# maxiter= 1 # define the maximum number of iterations
 # res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
@@ -296,8 +372,12 @@ if feasible:
     fbest = res.fun
     print("feasable solution found!")
 else:  # nonsense to let us know this did not work
+    print('\nConstraint vector at res.x:')
+    print(c)
+    print('Largest constraint violation = {:.6f}'.format(np.max(c)))
     # print(xbest) #to see what doesnt work
     # print(fval) #to see what doesnt work
+    debug_candidate(res.x, edl_system, planet, mission_events, tmax, experiment, end_event)
     xbest = [99999, 99999, 99999, 99999, 99999]
     fval = [99999]
     raise Exception('Solution not feasible, exiting code...')

@@ -69,8 +69,8 @@ plt.tight_layout()
 sky_crane_hover_pos = Y[1, :]
 sky_crane_speed = Y[0, :]
 ignore_indices = sky_crane_hover_pos>2*20
-sky_crane_hover_pos[ignore_indices] = np.NaN 
-sky_crane_speed[ignore_indices] = np.NaN  
+sky_crane_hover_pos[ignore_indices] = np.nan 
+sky_crane_speed[ignore_indices] = np.nan  
 axs2[0].plot(t,sky_crane_speed)
 axs2[0].set_title('speed of sky crane vs. time')
 axs2[0].grid()
