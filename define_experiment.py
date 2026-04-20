@@ -7,6 +7,7 @@
 
 import numpy as np
 
+
 def experiment1():
     
     experiment = {'time_range' : np.array([0,20000]),
@@ -26,8 +27,7 @@ def experiment1():
     '''plot the terrain shape to visualize it for testing'''
     
     
-    
-    
-    
     return experiment, end_event
+
+
 

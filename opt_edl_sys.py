@@ -12,6 +12,7 @@ from define_experiment import *
 from scipy.optimize import minimize, differential_evolution
 from scipy.optimize import Bounds
 from scipy.optimize import NonlinearConstraint
+from terrain_plot import terrain_stats_plots
 import pickle
 import sys
 
@@ -20,10 +21,12 @@ import sys
 planet = define_planet()
 edl_system = define_edl_system()
 mission_events = define_mission_events()
-edl_system = define_chassis(edl_system,'carbon')
+edl_system = define_chassis(edl_system,'magnesium')
 edl_system = define_motor(edl_system,'base')
 edl_system = define_batt_pack(edl_system,'PbAcid-1', 10)
 tmax = 5000
+
+
 
 # Overrides what might be in the loaded data to establish our desired
 # initial conditions
@@ -34,6 +37,9 @@ edl_system['parachute']['ejected'] = False   # and still attached
 edl_system['rover']['on_ground'] = False # the rover has not yet landed
 
 experiment, end_event = experiment1()
+# Plot of terain used for the testing:
+terrain_stats_plots()
+
 
 # constraints
 max_rover_velocity = -1  # this is during the landing phase
@@ -194,6 +200,8 @@ def debug_candidate(x, edl_system, planet, mission_events, tmax, experiment, end
     print('Chassis mass               = {:.6f} kg'.format(x[2]))
     print('Speed reducer gear diam    = {:.6f} m'.format(x[3]))
     print('Fuel mass per rocket       = {:.6f} kg'.format(x[4]))
+    edl_system_total_cost= get_cost_edl(edl_system)
+    print('total system cost          = ${:.2f}*10^6'.format(edl_system_total_cost/ 10**6))
 
     # --- EDL rerun
     try:
@@ -309,13 +317,13 @@ def callbackF(Xi):
 
 ###############################################################################
 #call the trust-constr optimizer --------------------------------------------#
-options = {'maxiter': 3, 
-            # 'initial_constr_penalty' : 5.0,
-            # 'initial_barrier_parameter' : 1.0,
-            'verbose' : 3,
-            'disp' : True}
-res = minimize(obj_f, x0, method='trust-constr', constraints=nonlinear_constraint, 
-                options=options, bounds=bounds)
+# options = {'maxiter': 2, 
+#             # 'initial_constr_penalty' : 5.0,
+#             # 'initial_barrier_parameter' : 1.0,
+#             'verbose' : 3,
+#             'disp' : True}
+# res = minimize(obj_f, x0, method='trust-constr', constraints=nonlinear_constraint, 
+#                 options=options, bounds=bounds)
 # end call to the trust-constr optimizer -------------------------------------#
 ###############################################################################
 
@@ -330,10 +338,10 @@ res = minimize(obj_f, x0, method='trust-constr', constraints=nonlinear_constrain
 
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
-# print("run differential evolution optimizer")
-# popsize= 2 # define the population size
-# maxiter= 1 # define the maximum number of iterations
-# res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
+print("run differential evolution optimizer")
+popsize= 5 # define the population size
+maxiter= 3 # define the maximum number of iterations
+res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
 
