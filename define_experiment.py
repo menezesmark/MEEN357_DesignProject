@@ -23,5 +23,11 @@ def experiment1():
                  'max_time' : 5000,
                  'min_velocity' : 0.01}
     
+    '''plot the terrain shape to visualize it for testing'''
+    
+    
+    
+    
+    
     return experiment, end_event
 
