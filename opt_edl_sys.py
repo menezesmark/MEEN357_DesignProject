@@ -15,6 +15,10 @@ from scipy.optimize import NonlinearConstraint
 from terrain_plot import terrain_stats_plots
 import pickle
 import sys
+import csv
+import os
+RESULTS_CSV = 'winning_rovers1.csv'
+
 
 # the following calls instantiate the needed structs and also make some of
 # our design selections (battery type, etc.)
@@ -54,6 +58,36 @@ Add custom constraints here for:
 
 
 ############### Wyatt Moore: Code below origin with ChatGPT
+
+def append_result_to_csv(csv_path, row_dict):
+    file_exists = os.path.exists(csv_path)
+
+    with open(csv_path, 'a', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=list(row_dict.keys()))
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row_dict)
+
+def load_x0_from_csv(csv_path, row_index):
+    with open(csv_path, 'r', newline='') as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+
+    if row_index < 0 or row_index >= len(rows):
+        raise IndexError(f'row_index {row_index} out of range for {len(rows)} saved rows')
+
+    row = rows[row_index]
+
+    x0_loaded = np.array([
+        float(row['parachute_diameter']),
+        float(row['wheel_radius']),
+        float(row['chassis_mass']),
+        float(row['gear_diameter']),
+        float(row['fuel_mass_per_rocket'])
+    ], dtype=float)
+
+    return x0_loaded, row
+
 # -----------------------------
 # Coupled-constraint model coefficients
 # Replace these placeholder values with the ones from your fit script
@@ -262,13 +296,22 @@ def debug_candidate(x, edl_system, planet, mission_events, tmax, experiment, end
 # search bounds
 #x_lb = np.array([14, 0.2, 250, 0.05, 100])
 #x_ub = np.array([19, 0.7, 800, 0.12, 290])
-bounds = Bounds([14, 0.5, 250, 0.05, 100], [19, 0.7, 800, 0.12, 125])
-# shrunk fuel range because it seems to work with the min 100 kg of fuel
+bounds = Bounds([14, 0.5, 250, 0.05, 100], [19, 0.7, 800, 0.12, 290])
 # Brough min wheel up to 0.5 b/c larger wheels seem more optimal
 
 
 # initial guess
-x0 = np.array([19, .7, 550.0, 0.09, 120.0]) 
+USE_CSV_START = input("Pull previous results for optimization run? [y/n]: ")
+
+if USE_CSV_START == 'y':
+    row_str = input(f'Enter CSV row index to use from {RESULTS_CSV}: ')
+    row_idx = int(row_str)
+    x0, loaded_row = load_x0_from_csv(RESULTS_CSV, row_idx)
+    print(f"Loaded x0 from CSV row {row_idx}: {x0}")
+elif USE_CSV_START == 'n':
+    x0 = np.array([19, .7, 550.0, 0.09, 250.0])
+else:
+    raise Exception("must enter y or n in prompts only")
 
 # lambda for the objective function
 obj_f = lambda x: screened_obj_fun(
@@ -339,8 +382,8 @@ def callbackF(Xi):
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
 print("run differential evolution optimizer")
-popsize= 5 # define the population size
-maxiter= 3 # define the maximum number of iterations
+popsize= 10 # define the population size
+maxiter= 2 # define the maximum number of iterations
 res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
@@ -449,4 +492,32 @@ print('Battery energy per meter       = {:.6f} [J/m]'.format(edl_system['rover']
 print('Total cost                     = {:.6f} [$]'.format(edl_system_total_cost))
 print('----------------------------------------')
 print('----------------------------------------')
+
+
+result_row = {
+    'parachute_diameter': float(xbest[0]),
+    'wheel_radius': float(xbest[1]),
+    'chassis_mass': float(xbest[2]),
+    'gear_diameter': float(xbest[3]),
+    'fuel_mass_per_rocket': float(xbest[4]),
+    'time_edl': float(time_edl),
+    'time_rover': float(time_rover),
+    'time_total': float(total_time),
+    'landing_velocity': float(edl_system['rover_touchdown_speed']),
+    'avg_velocity': float(edl_system['rover']['telemetry']['average_velocity']),
+    'distance_traveled': float(edl_system['rover']['telemetry']['distance_traveled']),
+    'energy_per_distance': float(edl_system['rover']['telemetry']['energy_per_distance']),
+    'total_cost': float(edl_system_total_cost),
+    'motor_type': edl_system['rover']['wheel_assembly']['motor'].get('type', ''),
+    'chassis_type': edl_system['rover']['chassis'].get('type', ''),
+    'battery_type': edl_system['rover']['power_subsys']['battery'].get('battery_type', ''),
+    'battery_modules': int(edl_system['rover']['power_subsys']['battery'].get('num_modules', 0)),
+    'team_name': edl_system['team_name'],
+    'team_number': edl_system['team_number']
+}
+
+append_result_to_csv(RESULTS_CSV, result_row)
+print(f"Saved successful result to {RESULTS_CSV}")
+
+
 

@@ -1,0 +1,2 @@
+parachute_diameter,wheel_radius,chassis_mass,gear_diameter,fuel_mass_per_rocket,time_edl,time_rover,time_total,landing_velocity,avg_velocity,distance_traveled,energy_per_distance,total_cost,team_name,team_number
+16.6243843053519,0.5972028211544913,303.67754567740315,0.05654304757641604,222.82168757858054,276.78453230931206,837.345442034663,1114.1299743439752,-0.0999713235896671,1.1624265374315899,1000.0,673.4307933713806,5669133.61431501,base,magnesium,PbAcid-1,10,SixtySevenMinusThree,64
