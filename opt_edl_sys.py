@@ -16,7 +16,7 @@ import pickle
 import sys
 import csv
 import os
-RESULTS_CSV = 'winning_rovers1.csv'
+RESULTS_CSV = 'saved_rovers_WM.csv'
 
 
 # the following calls instantiate the needed structs and also make some of
@@ -29,15 +29,15 @@ edl_system = define_motor(edl_system,'base')
 edl_system = define_batt_pack(edl_system,'PbAcid-1', 10)
 tmax = 5000
 
-print("battery capacity = {:.6e} [J]".format(edl_system['rover']['power_subsys']['battery']['capacity']))
-print("Rover Mass = {:.6e} [kg]".format(get_mass_rover(edl_system['rover'])))
-
-if (input("Run simulation? [y/n]: ") == 'n'):
-    raise Exception("Stopped simulation")
 
 
+if (input("initilize terrain plot? [y/n]: ")) == 'y':
+    terrain_stats_plots()
+    print("terrain plot generated")
+else:
+    print("skipped terrain plotting")
 
-terrain_stats_plots()
+
 
 # Overrides what might be in the loaded data to establish our desired
 # initial conditions
@@ -63,6 +63,15 @@ Add custom constraints here for:
 - Fuel mass, Linked to payload mass when it is deployed
 '''
 
+
+print("Battery capacity = {:.6e} [J]".format(edl_system['rover']['power_subsys']['battery']['capacity']))
+print("Max Batt energy per meter = {:.6f} [J]".format(max_batt_energy_per_meter))
+print("Rover Mass = {:.6e} [kg]".format(get_mass_rover(edl_system['rover'])))
+
+
+if (input("Run simulation? [y/n]: ") == 'n'):
+    sys.exit("Stopped Simulation")
+    # raise Exception("Stopped simulation")
 
 ############### Wyatt Moore: Code below origin with ChatGPT
 
@@ -389,7 +398,7 @@ def callbackF(Xi):
 # call the differential evolution optimizer ----------------------------------#
 print("run differential evolution optimizer")
 popsize= 20 # define the population size
-maxiter= 200 # define the maximum number of iterations
+maxiter= 20 # define the maximum number of iterations
 res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
@@ -522,16 +531,28 @@ result_row = {
     'team_number': edl_system['team_number']
 }
 
+
+
 # append_result_to_csv(RESULTS_CSV, result_row)
 # print(f"Saved successful result to {RESULTS_CSV}")
 
 check_fin = False
+
 while check_fin == False:
-    store_new_result = input("Append results to csv? [y/n]: ")
+    store_new_result = input("Append results to a CSV file? [y/n]: ")
     if store_new_result == 'y':
-        append_result_to_csv(RESULTS_CSV, result_row)
-        print(f"Saved successful result to {RESULTS_CSV}")
-        break
+        while check_fin == False:
+            if (input("Store results inside different CSV? [y/n]: ")) == 'y':
+                print("Note: new CSV should already be initialized")
+                DIFF_CSV = input("type CSV name here (remember the .csv): ")
+                append_result_to_csv(DIFF_CSV, result_row)
+                print(f"Saved successful result to {DIFF_CSV}")
+                break
+            else:
+                append_result_to_csv(RESULTS_CSV, result_row)
+                print(f"Saved successful result to {RESULTS_CSV}")
+                break
+            break
     elif store_new_result == 'n':
         print("results not stored")
         break

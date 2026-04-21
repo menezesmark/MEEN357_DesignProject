@@ -14,9 +14,9 @@ def experiment1():
     experiment = {'time_range' : np.array([0,20000]),
                   'initial_conditions' : np.array([0.3125,0]),
                   'alpha_dist' : np.array([0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]),
-                  'alpha_deg' : np.array([11.509, 2.032, 7.182, 0, \
-                                        35, 0, -35, -0, \
-                                        15, 4.151, 4.042]),
+                  'alpha_deg' : np.array([35, 35, 10, 0, \
+                                        -10, 0, 5, 0, \
+                                        5, -4.151, 4.042]),
                   'Crr' : 0.1}
     
     
