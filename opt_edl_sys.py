@@ -12,7 +12,6 @@ from define_experiment import *
 from scipy.optimize import minimize, differential_evolution
 from scipy.optimize import Bounds
 from scipy.optimize import NonlinearConstraint
-from terrain_plot import terrain_stats_plots
 import pickle
 import sys
 import csv
@@ -42,7 +41,7 @@ edl_system['rover']['on_ground'] = False # the rover has not yet landed
 
 experiment, end_event = experiment1()
 # Plot of terain used for the testing:
-terrain_stats_plots()
+# terrain_stats_plots()
 
 
 # constraints
@@ -382,8 +381,8 @@ def callbackF(Xi):
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
 print("run differential evolution optimizer")
-popsize= 10 # define the population size
-maxiter= 2 # define the maximum number of iterations
+popsize= 15 # define the population size
+maxiter= 30 # define the maximum number of iterations
 res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
@@ -516,8 +515,17 @@ result_row = {
     'team_number': edl_system['team_number']
 }
 
-append_result_to_csv(RESULTS_CSV, result_row)
-print(f"Saved successful result to {RESULTS_CSV}")
 
+check_fin = False
+while check_fin:
+    store_new_result = input("Append results to csv? [y/n]: ")
+    if store_new_result == 'y':
+        append_result_to_csv(RESULTS_CSV, result_row)
+        print(f"Saved successful result to {RESULTS_CSV}")
+    elif store_new_result == 'n':
+        print("results not stored")
+        break
+    else:
+        print("must enter y or n in prompts only")
 
 
