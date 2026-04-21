@@ -295,7 +295,7 @@ def debug_candidate(x, edl_system, planet, mission_events, tmax, experiment, end
 # search bounds
 #x_lb = np.array([14, 0.2, 250, 0.05, 100])
 #x_ub = np.array([19, 0.7, 800, 0.12, 290])
-bounds = Bounds([14, 0.5, 250, 0.05, 100], [19, 0.7, 800, 0.12, 290])
+bounds = Bounds([14, 0.65, 250, 0.05, 100], [19, 0.7, 800, 0.12, 290])
 # Brough min wheel up to 0.5 b/c larger wheels seem more optimal
 
 
@@ -381,8 +381,8 @@ def callbackF(Xi):
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
 print("run differential evolution optimizer")
-popsize= 20 # define the population size
-maxiter= 50 # define the maximum number of iterations
+popsize= 25 # define the population size
+maxiter= 100 # define the maximum number of iterations
 res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
@@ -515,17 +515,19 @@ result_row = {
     'team_number': edl_system['team_number']
 }
 
+append_result_to_csv(RESULTS_CSV, result_row)
+print(f"Saved successful result to {RESULTS_CSV}")
 
-check_fin = False
-while check_fin:
-    store_new_result = input("Append results to csv? [y/n]: ")
-    if store_new_result == 'y':
-        append_result_to_csv(RESULTS_CSV, result_row)
-        print(f"Saved successful result to {RESULTS_CSV}")
-    elif store_new_result == 'n':
-        print("results not stored")
-        break
-    else:
-        print("must enter y or n in prompts only")
+# check_fin = False
+# while check_fin:
+#     store_new_result = input("Append results to csv? [y/n]: ")
+#     if store_new_result == 'y':
+#         append_result_to_csv(RESULTS_CSV, result_row)
+#         print(f"Saved successful result to {RESULTS_CSV}")
+#     elif store_new_result == 'n':
+#         print("results not stored")
+#         break
+#     else:
+#         print("must enter y or n in prompts only")
 
 
