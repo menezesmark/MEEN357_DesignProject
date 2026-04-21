@@ -15,7 +15,7 @@ def experiment1():
                   'initial_conditions' : np.array([0.3125,0]),
                   'alpha_dist' : np.array([0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]),
                   'alpha_deg' : np.array([11.509, 2.032, 7.182, 0, \
-                                        35, 0, -35, -10, \
+                                        35, 0, -35, -0, \
                                         15, 4.151, 4.042]),
                   'Crr' : 0.1}
     
@@ -84,4 +84,4 @@ def terrain_stats_plots():
     plt.show()
     return
 
-terrain_stats_plots()
+# terrain_stats_plots()

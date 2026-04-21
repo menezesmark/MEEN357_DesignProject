@@ -29,7 +29,15 @@ edl_system = define_motor(edl_system,'base')
 edl_system = define_batt_pack(edl_system,'PbAcid-1', 10)
 tmax = 5000
 
+print("battery capacity = {:.6e} [J]".format(edl_system['rover']['power_subsys']['battery']['capacity']))
+print("Rover Mass = {:.6e} [kg]".format(get_mass_rover(edl_system['rover'])))
 
+if (input("Run simulation? [y/n]: ") == 'n'):
+    raise Exception("Stopped simulation")
+
+
+
+terrain_stats_plots()
 
 # Overrides what might be in the loaded data to establish our desired
 # initial conditions
@@ -303,10 +311,9 @@ bounds = Bounds([14, 0.65, 250, 0.05, 100], [19, 0.7, 800, 0.12, 290])
 USE_CSV_START = input("Pull previous results for optimization run? [y/n]: ")
 
 if USE_CSV_START == 'y':
-    row_str = input(f'Enter CSV row index to use from {RESULTS_CSV}: ')
-    row_idx = int(row_str)
-    x0, loaded_row = load_x0_from_csv(RESULTS_CSV, row_idx)
-    print(f"Loaded x0 from CSV row {row_idx}: {x0}")
+    row = int(input(f'Enter CSV row to use from {RESULTS_CSV}: '))-1
+    x0, loaded_row = load_x0_from_csv(RESULTS_CSV, row)
+    print(f"Loaded x0 from CSV row {row}: {x0}")
 elif USE_CSV_START == 'n':
     x0 = np.array([19, .7, 550.0, 0.09, 250.0])
 else:
@@ -381,8 +388,8 @@ def callbackF(Xi):
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
 print("run differential evolution optimizer")
-popsize= 25 # define the population size
-maxiter= 100 # define the maximum number of iterations
+popsize= 20 # define the population size
+maxiter= 200 # define the maximum number of iterations
 res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
@@ -515,19 +522,20 @@ result_row = {
     'team_number': edl_system['team_number']
 }
 
-append_result_to_csv(RESULTS_CSV, result_row)
-print(f"Saved successful result to {RESULTS_CSV}")
+# append_result_to_csv(RESULTS_CSV, result_row)
+# print(f"Saved successful result to {RESULTS_CSV}")
 
-# check_fin = False
-# while check_fin:
-#     store_new_result = input("Append results to csv? [y/n]: ")
-#     if store_new_result == 'y':
-#         append_result_to_csv(RESULTS_CSV, result_row)
-#         print(f"Saved successful result to {RESULTS_CSV}")
-#     elif store_new_result == 'n':
-#         print("results not stored")
-#         break
-#     else:
-#         print("must enter y or n in prompts only")
+check_fin = False
+while check_fin == False:
+    store_new_result = input("Append results to csv? [y/n]: ")
+    if store_new_result == 'y':
+        append_result_to_csv(RESULTS_CSV, result_row)
+        print(f"Saved successful result to {RESULTS_CSV}")
+        break
+    elif store_new_result == 'n':
+        print("results not stored")
+        break
+    else:
+        print("must enter y or n in prompts only")
 
 
