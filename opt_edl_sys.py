@@ -381,8 +381,8 @@ def callbackF(Xi):
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
 print("run differential evolution optimizer")
-popsize= 15 # define the population size
-maxiter= 30 # define the maximum number of iterations
+popsize= 20 # define the population size
+maxiter= 50 # define the maximum number of iterations
 res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
