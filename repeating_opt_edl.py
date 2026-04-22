@@ -46,8 +46,8 @@ OUTPUT_CSV = INPUT_CSV
 SETTINGS = {
     # architecture choices
     'chassis_type': 'magnesium',
-    'motor_type': 'base',
-    'battery_type': 'PbAcid-1',
+    'motor_type': 'speed',
+    'battery_type': 'LiFePO4',
     'battery_modules': 10,
 
     # terrain / experiment choice
@@ -744,21 +744,22 @@ def run_batch(settings=None, arch_options=None):
 
 
 # ============================================================
-# MINI DRIVER: test one motor list with differential evolution
+# MINI DRIVER: test one battery list with differential evolution
 # ============================================================
 
-motor_list = ['base', 'base_he', 'torque', 'torque_he', 'speed', 'speed_he']
-temp_csv = 'temp_motor_comparison.csv'
+battery_list = [10, 9, 8, 7, 6, 3, 2, 1]
+# ['LiFePO4', 'NiMH', 'NiCD', 'PbAcid-1', 'PbAcid-2', 'PbAcid-3']
+temp_csv = 'temp_number_battery_comparison.csv'
 
 # Start fresh each time
 reset_csv(temp_csv)
-print("Running motor evaluation:")
-for motor in motor_list:
+print("Running battery evaluation:")
+for battery in battery_list:
     run_settings = SETTINGS.copy()
 
     # Keep defaults, only change what we care about
     run_settings['method'] = 'differential_evolution'
-    run_settings['motor_type'] = motor
+    run_settings['battery_modules'] = battery
     run_settings['save_results'] = False          # do not write to the main results CSV
     run_settings['results_csv'] = temp_csv        # not used since save_results=False
     run_settings['de_popsize'] = 15
@@ -767,7 +768,7 @@ for motor in motor_list:
     run_settings['de_polish'] = False
 
     print('\n==============================================')
-    print('Running motor test for:', motor)
+    print('Running battery test for:', battery)
     print('==============================================')
 
     result = run_one_optimization(run_settings)
@@ -777,12 +778,12 @@ for motor in motor_list:
         row = result['result_row'].copy()
         row['feasible'] = True
         row['status'] = result['status']
-        row['motor_tested'] = motor
+        row['battery_tested'] = battery
     else:
         row = {
             'method': run_settings['method'],
             'terrain_name': run_settings['experiment_function'].__name__,
-            'motor_tested': motor,
+            'battery_tested': battery,
             'chassis_type': run_settings['chassis_type'],
             'battery_type': run_settings['battery_type'],
             'battery_modules': run_settings['battery_modules'],
@@ -799,7 +800,7 @@ for motor in motor_list:
 
     append_result_to_csv(temp_csv, row)
 
-print('\nFinished motor comparison runs.')
+print('\nFinished battery comparison runs.')
 print('Results saved to:', temp_csv)
 
 

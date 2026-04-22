@@ -26,7 +26,7 @@ edl_system = define_edl_system()
 mission_events = define_mission_events()
 edl_system = define_chassis(edl_system,'magnesium')
 edl_system = define_motor(edl_system,'speed')
-edl_system = define_batt_pack(edl_system,'PbAcid-1', 10)
+edl_system = define_batt_pack(edl_system,'LiFePO4', 8)
 tmax = 5000
 
 
@@ -397,8 +397,8 @@ def callbackF(Xi):
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
 print("run differential evolution optimizer")
-popsize= 25 # define the population size
-maxiter= 200 # define the maximum number of iterations
+popsize= 20 # define the population size
+maxiter= 500 # define the maximum number of iterations
 res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
