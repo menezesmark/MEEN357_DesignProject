@@ -25,7 +25,7 @@ planet = define_planet()
 edl_system = define_edl_system()
 mission_events = define_mission_events()
 edl_system = define_chassis(edl_system,'magnesium')
-edl_system = define_motor(edl_system,'base')
+edl_system = define_motor(edl_system,'speed')
 edl_system = define_batt_pack(edl_system,'PbAcid-1', 10)
 tmax = 5000
 
@@ -106,8 +106,6 @@ def load_x0_from_csv(csv_path, row_index):
 
 # -----------------------------
 # Coupled-constraint model coefficients
-# Replace these placeholder values with the ones from your fit script
-# -----------------------------
 PARACHUTE_COEFF = [np.float64(1.947251937461125e-06), np.float64(0.002157054850622941), np.float64(14.84407140656271)]   # example: a2, a1, a0
 
 # valid ranges for your fitted relationships
@@ -312,7 +310,7 @@ def debug_candidate(x, edl_system, planet, mission_events, tmax, experiment, end
 # search bounds
 #x_lb = np.array([14, 0.2, 250, 0.05, 100])
 #x_ub = np.array([19, 0.7, 800, 0.12, 290])
-bounds = Bounds([14, 0.65, 250, 0.05, 100], [19, 0.7, 800, 0.12, 290])
+bounds = Bounds([15, 0.65, 250, 0.05, 100], [19, 0.7, 800, 0.12, 290])
 # Brough min wheel up to 0.5 b/c larger wheels seem more optimal
 
 
@@ -324,7 +322,7 @@ if USE_CSV_START == 'y':
     x0, loaded_row = load_x0_from_csv(RESULTS_CSV, row)
     print(f"Loaded x0 from CSV row {row}: {x0}")
 elif USE_CSV_START == 'n':
-    x0 = np.array([19, .7, 550.0, 0.09, 250.0])
+    x0 = np.array([16, .7, 550.0, 0.09, 250.0])
 else:
     raise Exception("must enter y or n in prompts only")
 
@@ -366,6 +364,8 @@ def callbackF(Xi):
 
 
 
+
+
 # The optimizer options below are
 # 'trust-constr'
 # 'SLSQP'
@@ -397,8 +397,8 @@ def callbackF(Xi):
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
 print("run differential evolution optimizer")
-popsize= 20 # define the population size
-maxiter= 20 # define the maximum number of iterations
+popsize= 25 # define the population size
+maxiter= 200 # define the maximum number of iterations
 res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
@@ -533,30 +533,30 @@ result_row = {
 
 
 
-# append_result_to_csv(RESULTS_CSV, result_row)
-# print(f"Saved successful result to {RESULTS_CSV}")
+append_result_to_csv(RESULTS_CSV, result_row)
+print(f"Saved successful result to {RESULTS_CSV}")
 
-check_fin = False
+# check_fin = False
 
-while check_fin == False:
-    store_new_result = input("Append results to a CSV file? [y/n]: ")
-    if store_new_result == 'y':
-        while check_fin == False:
-            if (input("Store results inside different CSV? [y/n]: ")) == 'y':
-                print("Note: new CSV should already be initialized")
-                DIFF_CSV = input("type CSV name here (remember the .csv): ")
-                append_result_to_csv(DIFF_CSV, result_row)
-                print(f"Saved successful result to {DIFF_CSV}")
-                break
-            else:
-                append_result_to_csv(RESULTS_CSV, result_row)
-                print(f"Saved successful result to {RESULTS_CSV}")
-                break
-            break
-    elif store_new_result == 'n':
-        print("results not stored")
-        break
-    else:
-        print("must enter y or n in prompts only")
+# while check_fin == False:
+#     store_new_result = input("Append results to a CSV file? [y/n]: ")
+#     if store_new_result == 'y':
+#         while check_fin == False:
+#             if (input("Store results inside different CSV? [y/n]: ")) == 'y':
+#                 print("Note: new CSV should already be initialized")
+#                 DIFF_CSV = input("type CSV name here (remember the .csv): ")
+#                 append_result_to_csv(DIFF_CSV, result_row)
+#                 print(f"Saved successful result to {DIFF_CSV}")
+#                 break
+#             else:
+#                 append_result_to_csv(RESULTS_CSV, result_row)
+#                 print(f"Saved successful result to {RESULTS_CSV}")
+#                 break
+#             break
+#     elif store_new_result == 'n':
+#         print("results not stored")
+#         break
+#     else:
+#         print("must enter y or n in prompts only")
 
 

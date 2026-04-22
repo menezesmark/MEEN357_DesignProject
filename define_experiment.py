@@ -84,4 +84,4 @@ def terrain_stats_plots():
     plt.show()
     return
 
-# terrain_stats_plots()
+terrain_stats_plots()
