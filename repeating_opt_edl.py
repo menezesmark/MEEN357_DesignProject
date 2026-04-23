@@ -53,12 +53,12 @@ SETTINGS = {
 
     # optimization method
     # options: 'trust-constr', 'SLSQP', 'differential_evolution', 'COBYLA'
-    'method': 'differential_evolution',
+    'method': 'SLSQP',
 
     # initial guess options
-    'use_csv_start': False,
+    'use_csv_start': True,
     'csv_start_file': 'saved_rovers_WM.csv',
-    'csv_start_row': 0,     # zero-based
+    'csv_start_row': 11,     # zero-based (minus 1 due to lables row)
     'x0_default': np.array([19.0, 0.70, 550.0, 0.09, 250.0]),
 
     # main simulation / mission settings
@@ -69,16 +69,16 @@ SETTINGS = {
 
     # bounds in same order as x
     # [parachute diameter, wheel radius, chassis mass, d2, fuel mass]
-    'bounds_lb': [15.0, 0.65, 250.0, 0.05, 150.0],
-    'bounds_ub': [19.0, 0.70, 800.0, 0.12, 290.0],
+    'bounds_lb': [16.0, 0.65, 250.0, 0.05, 150.0],
+    'bounds_ub': [19.0, 0.70, 500.0, 0.12, 290.0],
 
     # trust-constr options
-    'trust_maxiter': 5,
+    'trust_maxiter': 30,
     'trust_verbose': 3,
     'trust_disp': True,
 
     # SLSQP options
-    'slsqp_maxiter': 5,
+    'slsqp_maxiter': 150,
     'slsqp_disp': True,
 
     # differential evolution options
@@ -516,6 +516,10 @@ def problem_builder(settings):
     max_cost = settings['max_cost']
     max_batt_energy_per_meter = edl_system['rover']['power_subsys']['battery']['capacity']/1000
 
+    print('Battery capacity = {:.6e} [J]'.format(edl_system['rover']['power_subsys']['battery']['capacity']))
+    print('Max Batt energy per meter = {:.6f} [J/m]'.format(max_batt_energy_per_meter))
+    print('Rover Mass = {:.6e} [kg]'.format(get_mass_rover(edl_system['rover'])))
+    
     bounds = Bounds(settings['bounds_lb'], settings['bounds_ub'])
 
     if settings['use_csv_start']:
