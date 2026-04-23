@@ -34,9 +34,6 @@ import sys
 import csv
 import os
 
-INPUT_CSV = 'saved_rovers_WM.csv'
-INPUT_CSV_INDEX = 4
-OUTPUT_CSV = INPUT_CSV
 
 
 # ============================================================
@@ -48,7 +45,7 @@ SETTINGS = {
     'chassis_type': 'magnesium',
     'motor_type': 'speed',
     'battery_type': 'LiFePO4',
-    'battery_modules': 10,
+    'battery_modules': 8,
 
     # terrain / experiment choice
     'experiment_function': experiment1,
@@ -85,8 +82,8 @@ SETTINGS = {
     'slsqp_disp': True,
 
     # differential evolution options
-    'de_popsize': 20,
-    'de_maxiter': 20,
+    'de_popsize': 25,
+    'de_maxiter': 60,
     'de_disp': True,
     'de_polish': False,
     'de_seed': None,
@@ -137,14 +134,25 @@ ARCH_OPTIONS = {
 
 def append_result_to_csv(csv_path, row_dict):
     fixed_fields = [
-        'method', 'terrain_name', 'motor_tested',
-        'chassis_type', 'battery_type', 'battery_modules',
-        'status', 'feasible', 'largest_violation',
-        'parachute_diameter', 'wheel_radius', 'chassis_mass',
-        'gear_diameter', 'fuel_mass_per_rocket',
-        'time_edl', 'time_rover', 'time_total',
-        'landing_velocity', 'avg_velocity', 'distance_traveled',
-        'energy_per_distance', 'total_cost', 'objective_value'
+        'parachute_diameter',
+        'wheel_radius',
+        'chassis_mass',
+        'gear_diameter',
+        'fuel_mass_per_rocket',
+        'time_edl',
+        'time_rover',
+        'time_total',
+        'landing_velocity',
+        'avg_velocity',
+        'distance_traveled',
+        'energy_per_distance',
+        'total_cost',
+        'motor_type',
+        'chassis_type',
+        'battery_type',
+        'battery_modules',
+        'team_name',
+        'team_number'
     ]
 
     row_out = {}
@@ -181,10 +189,109 @@ def load_x0_from_csv(csv_path, row_index):
     return x0_loaded, row
 
 
-def reset_csv(csv_path):
-    if os.path.exists(csv_path):
-        os.remove(csv_path)
+def build_design_from_csv_row(csv_path, row_index,
+                              chassis_type=None,
+                              motor_type=None,
+                              battery_type=None,
+                              battery_modules=None):
 
+    x0, row = load_x0_from_csv(csv_path, row_index)
+
+    if chassis_type is None:
+        chassis_type = row.get('chassis_type', 'magnesium')
+    if motor_type is None:
+        motor_type = row.get('motor_type', 'base')
+    if battery_type is None:
+        battery_type = row.get('battery_type', 'PbAcid-1')
+    if battery_modules is None:
+        try:
+            battery_modules = int(row.get('battery_modules', 10))
+        except:
+            battery_modules = 10
+
+
+def build_design_from_pickle(pickle_file):
+    """
+    Load a full edl_system directly from a saved pickle file.
+    """
+    with open(pickle_file, 'rb') as handle:
+        edl_system = pickle.load(handle)
+
+    return edl_system
+
+# def reset_csv(csv_path):
+#     if os.path.exists(csv_path):
+#         os.remove(csv_path)
+
+
+def save_design_to_pickle(edl_system, pickle_file, team_name, team_number):
+    """
+    Save the design in the same format expected by opt_edl:
+    the full edl_system dict with team metadata included.
+    """
+    edl_system['team_name'] = team_name
+    edl_system['team_number'] = team_number
+
+    with open(pickle_file, 'wb') as handle:
+        pickle.dump(edl_system, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def simulate_and_print_design(edl_system, experiment_function=experiment1, tmax=5000):
+    """
+    Run the full EDL + rover simulation for a design and print performance
+    to the terminal in a Spyder-friendly way.
+    """
+    planet = define_planet()
+    mission_events = define_mission_events()
+    experiment, end_event = experiment_function()
+
+    # Make sure initial EDL state is reset
+    edl_system = redefine_edl_system(edl_system)
+    edl_system['altitude'] = 11000
+    edl_system['velocity'] = -587
+    edl_system['parachute']['deployed'] = True
+    edl_system['parachute']['ejected'] = False
+    edl_system['rover']['on_ground'] = False
+
+    time_edl_run, Y_edl, edl_system = simulate_edl(edl_system, planet, mission_events, tmax, True)
+    time_edl = time_edl_run[-1]
+
+    remaining_total_fuel = Y_edl[2, -1]
+    remaining_fuel_per_rocket = remaining_total_fuel / edl_system['num_rockets']
+
+    edl_system['rover'] = simulate_rover(edl_system['rover'], planet, experiment, end_event)
+    time_rover = edl_system['rover']['telemetry']['completion_time']
+
+    total_time = time_edl + time_rover
+    total_cost = get_cost_edl(edl_system)
+
+    print('----------------------------------------')
+    print('Simulation results')
+    print('----------------------------------------')
+    print('Team name                     = {}'.format(edl_system.get('team_name', '')))
+    print('Team number                   = {}'.format(edl_system.get('team_number', '')))
+    print('Parachute diameter            = {:.6f} [m]'.format(edl_system['parachute']['diameter']))
+    print('Rocket fuel mass per rocket   = {:.6f} [kg]'.format(edl_system['rocket']['initial_fuel_mass']))
+    print('Wheel radius                  = {:.6f} [m]'.format(edl_system['rover']['wheel_assembly']['wheel']['radius']))
+    print('Speed reducer d2              = {:.6f} [m]'.format(edl_system['rover']['wheel_assembly']['speed_reducer']['diam_gear']))
+    print('Chassis mass                  = {:.6f} [kg]'.format(edl_system['rover']['chassis']['mass']))
+    print('Motor type                    = {}'.format(edl_system['rover']['wheel_assembly']['motor'].get('type', '')))
+    print('Chassis type                  = {}'.format(edl_system['rover']['chassis'].get('type', '')))
+    print('Battery type                  = {}'.format(edl_system['rover']['power_subsys']['battery'].get('battery_type', '')))
+    print('Battery modules               = {}'.format(edl_system['rover']['power_subsys']['battery'].get('num_modules', '')))
+    print('Time to complete EDL mission  = {:.6f} [s]'.format(time_edl))
+    print('Rover velocity at landing     = {:.6f} [m/s]'.format(edl_system['rover_touchdown_speed']))
+    print('Remaining fuel total          = {:.6f} [kg]'.format(remaining_total_fuel))
+    print('Remaining fuel per rocket     = {:.6f} [kg]'.format(remaining_fuel_per_rocket))
+    print('Time to complete rover run    = {:.6f} [s]'.format(time_rover))
+    print('Time to complete mission      = {:.6f} [s]'.format(total_time))
+    print('Average rover velocity        = {:.6f} [m/s]'.format(edl_system['rover']['telemetry']['average_velocity']))
+    print('Distance traveled             = {:.6f} [m]'.format(edl_system['rover']['telemetry']['distance_traveled']))
+    print('Battery energy per distance   = {:.6f} [J/m]'.format(edl_system['rover']['telemetry']['energy_per_distance']))
+    print('Total cost                    = {:.6f} [$]'.format(total_cost))
+    print('----------------------------------------')
+
+    return edl_system
 
 # ============================================================
 # CUSTOM OPTIMIZATION HELPERS (same style as opt_edl)
@@ -650,8 +757,13 @@ def run_one_optimization(settings=None):
         merged.update(settings)
         settings = merged
 
+    # Build the optimization problem from the current settings
     problem = problem_builder(settings)
+
+    # Run the selected optimizer
     res = run_optimizer(problem, settings)
+
+    # Check feasibility of the optimizer result
     feas = check_feasibility(problem, res)
 
     output = {
@@ -669,8 +781,12 @@ def run_one_optimization(settings=None):
             append_result_to_csv(settings['results_csv'], output['result_row'])
 
         if settings['save_pickle']:
-            with open(settings['pickle_file'], 'wb') as handle:
-                pickle.dump(output['edl_system'], handle, protocol=pickle.HIGHEST_PROTOCOL)
+            save_design_to_pickle(
+                output['edl_system'],
+                settings['pickle_file'],
+                settings['team_name'],
+                settings['team_number']
+                )
 
     else:
         if settings['debug_on_infeasible']:
@@ -747,62 +863,158 @@ def run_batch(settings=None, arch_options=None):
 # MINI DRIVER: test one battery list with differential evolution
 # ============================================================
 
-battery_list = [10, 9, 8, 7, 6, 3, 2, 1]
-# ['LiFePO4', 'NiMH', 'NiCD', 'PbAcid-1', 'PbAcid-2', 'PbAcid-3']
-temp_csv = 'temp_number_battery_comparison.csv'
+# battery_list = [8]
+# # ['LiFePO4', 'NiMH', 'NiCD', 'PbAcid-1', 'PbAcid-2', 'PbAcid-3']
+# temp_csv = 'temp_number_battery_comparison.csv'
 
-# Start fresh each time
-reset_csv(temp_csv)
-print("Running battery evaluation:")
-for battery in battery_list:
-    run_settings = SETTINGS.copy()
+# # Start fresh each time
+# reset_csv(temp_csv)
+# print("Running battery evaluation:")
+# for battery in battery_list:
+#     run_settings = SETTINGS.copy()
 
-    # Keep defaults, only change what we care about
-    run_settings['method'] = 'differential_evolution'
-    run_settings['battery_modules'] = battery
-    run_settings['save_results'] = False          # do not write to the main results CSV
-    run_settings['results_csv'] = temp_csv        # not used since save_results=False
-    run_settings['de_popsize'] = 15
-    run_settings['de_maxiter'] = 30
-    run_settings['de_disp'] = True
-    run_settings['de_polish'] = False
+#     # Keep defaults, only change what we care about
+#     run_settings['method'] = 'differential_evolution'
+#     run_settings['battery_modules'] = battery
+#     run_settings['save_results'] = False          # do not write to the main results CSV
+#     run_settings['results_csv'] = temp_csv        # not used since save_results=False
+#     run_settings['de_popsize'] = 25
+#     run_settings['de_maxiter'] = 150
+#     run_settings['de_disp'] = True
+#     run_settings['de_polish'] = False
 
-    print('\n==============================================')
-    print('Running battery test for:', battery)
-    print('==============================================')
+#     print('\n==============================================')
+#     print('Running battery test for:', battery)
+#     print('==============================================')
 
-    result = run_one_optimization(run_settings)
+#     result = run_one_optimization(run_settings)
 
-    # Build a row whether feasible or not
-    if result['status'] == 'success':
-        row = result['result_row'].copy()
-        row['feasible'] = True
-        row['status'] = result['status']
-        row['battery_tested'] = battery
-    else:
-        row = {
-            'method': run_settings['method'],
-            'terrain_name': run_settings['experiment_function'].__name__,
-            'battery_tested': battery,
-            'chassis_type': run_settings['chassis_type'],
-            'battery_type': run_settings['battery_type'],
-            'battery_modules': run_settings['battery_modules'],
-            'status': result['status'],
-            'feasible': False,
-            'largest_violation': result['feasibility']['largest_violation'],
-            'parachute_diameter': float(result['res'].x[0]),
-            'wheel_radius': float(result['res'].x[1]),
-            'chassis_mass': float(result['res'].x[2]),
-            'gear_diameter': float(result['res'].x[3]),
-            'fuel_mass_per_rocket': float(result['res'].x[4]),
-            'objective_value': float(result['res'].fun),
-        }
+#     # Build a row whether feasible or not
+#     if result['status'] == 'success':
+#         row = result['result_row'].copy()
+#         row['feasible'] = True
+#         row['status'] = result['status']
+#         row['battery_tested'] = battery
+#     else:
+#         row = {
+#             'method': run_settings['method'],
+#             'terrain_name': run_settings['experiment_function'].__name__,
+#             'battery_tested': battery,
+#             'chassis_type': run_settings['chassis_type'],
+#             'battery_type': run_settings['battery_type'],
+#             'battery_modules': run_settings['battery_modules'],
+#             'status': result['status'],
+#             'feasible': False,
+#             'largest_violation': result['feasibility']['largest_violation'],
+#             'parachute_diameter': float(result['res'].x[0]),
+#             'wheel_radius': float(result['res'].x[1]),
+#             'chassis_mass': float(result['res'].x[2]),
+#             'gear_diameter': float(result['res'].x[3]),
+#             'fuel_mass_per_rocket': float(result['res'].x[4]),
+#             'objective_value': float(result['res'].fun),
+#         }
 
-    append_result_to_csv(temp_csv, row)
+#     append_result_to_csv(temp_csv, row)
 
-print('\nFinished battery comparison runs.')
-print('Results saved to:', temp_csv)
 
+# # ============================================================
+# # RUN A FULL MISSION SIMULATION FROM ONE CSV ROW
+# # ============================================================
+
+# csv_file = 'saved_rovers_WM.csv'
+# row_index = 0   # zero-based
+
+# edl_from_csv = build_design_from_csv_row(
+#     csv_file,
+#     row_index,
+#     chassis_type='magnesium',
+#     motor_type='base',
+#     battery_type='PbAcid-1',
+#     battery_modules=10
+# )
+
+# simulate_and_print_design(edl_from_csv, experiment_function=experiment1, tmax=5000)
+
+
+# # ============================================================
+# # RUN A FULL MISSION SIMULATION FROM A PICKLE FILE
+# # ============================================================
+
+# pickle_file = 'SP26_501team64_repeat.pickle'
+
+# edl_from_pickle = build_design_from_pickle(pickle_file)
+
+# simulate_and_print_design(edl_from_pickle, experiment_function=experiment1, tmax=5000)
+
+
+# ============================================================
+# SINGLE-RUN DRIVER
+# Writes successful output in the same CSV field order as opt_edl
+# ============================================================
+
+
+# Build all system/problem data exactly like opt_edl
+problem = problem_builder(SETTINGS)
+
+planet = problem['planet']
+edl_system = problem['edl_system']
+mission_events = problem['mission_events']
+experiment = problem['experiment']
+end_event = problem['end_event']
+tmax = problem['tmax']
+bounds = problem['bounds']
+x0 = problem['x0']
+obj_f = problem['obj_f']
+cons_f = problem['cons_f']
+nonlinear_constraint = problem['nonlinear_constraint']
+ineq_cons = problem['ineq_cons']
+
+run_settings = SETTINGS.copy()
+run_settings['save_results'] = False   # prevent automatic save if your wrapper already does it
+
+result = run_one_optimization(run_settings)
+
+print('\n========================================')
+print('Optimization finished')
+print('Status =', result['status'])
+
+if result['status'] == 'success':
+    row = {
+        'parachute_diameter': float(result['xbest'][0]),
+        'wheel_radius': float(result['xbest'][1]),
+        'chassis_mass': float(result['xbest'][2]),
+        'gear_diameter': float(result['xbest'][3]),
+        'fuel_mass_per_rocket': float(result['xbest'][4]),
+        'time_edl': float(result['time_edl']),
+        'time_rover': float(result['time_rover']),
+        'time_total': float(result['time_total']),
+        'landing_velocity': float(result['edl_system']['rover_touchdown_speed']),
+        'avg_velocity': float(result['edl_system']['rover']['telemetry']['average_velocity']),
+        'distance_traveled': float(result['edl_system']['rover']['telemetry']['distance_traveled']),
+        'energy_per_distance': float(result['edl_system']['rover']['telemetry']['energy_per_distance']),
+        'total_cost': float(result['total_cost']),
+        'motor_type': result['edl_system']['rover']['wheel_assembly']['motor'].get('type', ''),
+        'chassis_type': result['edl_system']['rover']['chassis'].get('type', ''),
+        'battery_type': result['edl_system']['rover']['power_subsys']['battery'].get('battery_type', ''),
+        'battery_modules': int(result['edl_system']['rover']['power_subsys']['battery'].get('num_modules', 0)),
+        'team_name': result['edl_system'].get('team_name', run_settings['team_name']),
+        'team_number': result['edl_system'].get('team_number', run_settings['team_number'])
+    }
+
+    append_result_to_csv(run_settings['results_csv'], row)
+    
+    save_design_to_pickle(edl_system, SETTINGS['pickle_file'], SETTINGS['team_name'], SETTINGS['team_number'])
+
+    print('Feasible solution found')
+    print('xbest =', result['xbest'])
+    print('time_total =', result['time_total'])
+    print('Saved successful result to', run_settings['results_csv'])
+
+else:
+    print('No feasible solution found')
+    print('Largest constraint violation =', result['feasibility']['largest_violation'])
+
+print('========================================')
 
 
 
