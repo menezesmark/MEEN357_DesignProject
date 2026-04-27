@@ -184,7 +184,8 @@ def combined_constraints(x, edl_system, planet, mission_events, tmax,
 
     c_coupled = coupled_constraints(x, edl_system)
 
-    return np.concatenate((c_existing, c_coupled))
+    # return np.concatenate((c_existing, c_coupled))
+    return c_existing
 
 
 def mvp_check(x, edl_system, planet, mission_events, experiment, end_event):
@@ -387,19 +388,19 @@ def callbackF(Xi):
 
 ###############################################################################
 # call the SLSQP optimizer ---------------------------------------------------#
-# options = {'maxiter': 5,
-#             'disp' : True}
-# res = minimize(obj_f, x0, method='SLSQP', constraints=ineq_cons, bounds=bounds, 
-#                 options=options, callback=callbackF)
+options = {'maxiter': 5,
+            'disp' : True}
+res = minimize(obj_f, x0, method='SLSQP', constraints=ineq_cons, bounds=bounds, 
+                options=options, callback=callbackF)
 # end call to the SLSQP optimizer --------------------------------------------#
 ###############################################################################
 
 ###############################################################################
 # call the differential evolution optimizer ----------------------------------#
-print("run differential evolution optimizer")
-popsize= 20 # define the population size
-maxiter= 500 # define the maximum number of iterations
-res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
+# print("run differential evolution optimizer")
+# popsize= 20 # define the population size
+# maxiter= 500 # define the maximum number of iterations
+# res = differential_evolution(obj_f, bounds=bounds, constraints=nonlinear_constraint, popsize=popsize, maxiter=maxiter, disp=True, polish = False) 
 # end call the differential evolution optimizer ------------------------------#
 ###############################################################################
 
@@ -476,9 +477,9 @@ with open('SP26_501team64.pickle', 'wb') as handle:
     pickle.dump(edl_system, handle, protocol=pickle.HIGHEST_PROTOCOL)
 # *****************************************************************************
 
-#del edl_system
-#with open('challenge_design_team9999.pickle', 'rb') as handle:
-#    edl_system = pickle.load(handle)
+del edl_system
+with open('SP26_501team64.pickle', 'rb') as handle:
+   edl_system = pickle.load(handle)
 
 time_edl_run,_,edl_system = simulate_edl(edl_system,planet,mission_events,tmax,True)
 time_edl = time_edl_run[-1]

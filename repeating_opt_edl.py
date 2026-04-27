@@ -97,7 +97,7 @@ SETTINGS = {
     'save_results': True,
     'results_csv': 'saved_rovers_WM.csv',
     'save_pickle': False,
-    'pickle_file': 'SP26_501team64_repeat.pickle',
+    'pickle_file': 'SP26_501team64.pickle',
     'team_name': 'SixtySevenMinusThree',
     'team_number': 64,
 
@@ -362,7 +362,8 @@ def combined_constraints(x, edl_system, planet, mission_events, tmax,
 
     c_coupled = coupled_constraints(x, edl_system)
 
-    return np.concatenate((c_existing, c_coupled))
+    # return np.concatenate((c_existing, c_coupled))
+    return c_existing
 
 
 def mvp_check(x, edl_system, planet, mission_events, experiment, end_event):
